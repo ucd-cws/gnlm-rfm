@@ -2,6 +2,8 @@ __author__ = 'Andy'
 
 import arcpy
 import os
+import tempfile
+import shutil
 
 # Check out the ArcGIS Spatial Analyst extension license
 arcpy.CheckOutExtension("Spatial")
@@ -36,13 +38,6 @@ def tabulate_area_w_overlaps(data, idfield, raster, raster_value, out_tables, ce
 			print e.message
 
 
-
-def merge_tables():
-	pass
-
-
-
-
 def polys2rasters(input_polgyons, idfield, output_folder, cell_size):
 	"""converts polygons to seperate rasters in the same folder or gdb using unique ID. Folder is faster"""
 	cursor = arcpy.SearchCursor(input_polgyons)
@@ -75,19 +70,56 @@ def polys2rasters(input_polgyons, idfield, output_folder, cell_size):
 
 
 def merge_tables(folder, output):
-	pass
+	arcpy.env.workspace = folder
+	local_list = arcpy.ListTables()
+	print("Merging output....")
+	arcpy.Merge_management(local_list, output)
 
 
 def get_list_of_rasters(folder):
-	pass
+	"""
+	:param folder: path to folder
+	:return: list of rasters paths
+	"""
+	arcpy.env.workspace = folder
+	rasters = arcpy.ListRasters()
+
+	rasterlist = []
+
+	for raster in rasters:
+		rasterpath = os.path.join(folder, raster)
+		rasterlist.append(rasterpath)
+
+	return rasterlist
 
 
-def raster_tab_area(raster, output):
-	pass
+def rasters_tab_area(rasterlist, rasterlist_zone_field, in_class_data, class_field, final_out_table, processing_cell_size):
 
-def raster_zonal_stats(raster, output):
-	pass
+	scratch = tempwork()
+	print scratch
+
+	for raster in rasterlist:
+		base = os.path.basename(raster)
+		print base
+		tmp_table = os.path.join(scratch, base)
+		try:
+			arcpy.sa.TabulateArea(raster, rasterlist_zone_field, in_class_data, class_field, tmp_table, processing_cell_size)
+		except Exception as e:
+			errorLog = r'C:\Users\Andy\Documents\gnlm-rfm\log.txt'
+			print e.message
+			try:
+				with open(errorLog,'a') as errorMsg:
+					errorMsg.write("%s,%s\n" % (raster, e.message))
+			except RuntimeError:
+				arcpy.AddMessage("Unable to log")
+				arcpy.AddMessage(RuntimeError.message)
+
+	merge_tables(scratch, final_out_table)
 
 
-polys2rasters(r"C:\Users\Andy\Documents\gnlm-rfm\results\Wells.gdb\Vector\wells_Buffer", "OBJECTID",
-              r"C:\Users\Andy\Documents\gnlm-rfm\results\buf  fers.gdb", "50")
+def tempwork():
+	arcpy.env.scratchWorkspace = tempfile.mkdtemp()
+	print "Scratch workspace: %s" % arcpy.env.scratchWorkspace
+	scratch = arcpy.env.scratchGDB
+	return scratch
+

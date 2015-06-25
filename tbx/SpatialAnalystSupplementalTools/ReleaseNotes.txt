@@ -1,0 +1,48 @@
+Spatial Analyst Supplemental Tools
+Last Updated: 11/20/2013
+
+Version: 1.3
+
+What's new
+1. Added a new parameter 'Along longest upstream' to the Maximum Upstream Elevation tool.
+2. Added Tabulate Area 2 which has the same functionality as Tabulate Area but also accommodates overlapping polygons as zone input.
+3. Removed Zonal Statistics as Table for Overlapping Features and replaced it with Zonal Statistics as Table 2.  The new tool works with overlapping features for zone input as well as non overlapping zone input and raster zone input.
+
+	
+This version requires: 
+	ArcGIS 10.1 Service Pack 1 or later.
+	Spatial Analyst extension license.
+
+Note:
+Parameter data types have been updated to support localized versions of ArcGIS.
+If you do not have the minimum requirements you can modify the toolbox to 
+work properly in 10.1. Please read, 'How to use toolbox on ArcGIS 10.1'. 
+
+
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+How to use toolbox on ArcGIS 10.1:
+
+To run these tools on 10.1 the parameter types in each of the tool scripts
+(*.py) need to be modified.  Change data type definition as follows,
+
+Parameter type mapping from 10.1 SP1 to 10.1 
+
+10.1SP1         10.1       
+GPFeatureLayer  Feature Layer   
+GPRasterLayer   Raster Layer   
+DEFeatureClass  Feature Class   
+DERasterDataset Raster Dataset  
+GPBoolean       Boolean         
+GPDouble        Double                
+GPLong		Long
+DETable		Table
+
+
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+History: 
+Version: Change
+1.3: Added a new parameter 'Along longest upstream' to the Maximum Upstream Elevation tool.
+     Added 2 new tools Tabulate Area 2 and Zonal Statistics As Table 2.
+     Removed Zonal Statistics as Table for Overlapping Polygons   
+1.2: Added 2 tools: Erase Raster Values, Zonal Statistics as Table for Overlapping Features
+1.0: Create Dendrogram, Draw Signature, Filled Contours, Maximum Upstream Elevation, Viewshed Along Path, Peak.
