@@ -77,9 +77,9 @@ class WellBuffers(object):
 		arcpy.AddMessage("Output: %s" %output)
 
 		# Creates copy of the original points
-		arcpy.FeatureClassToFeatureClass_conversion(well_points, output, "Points")
+		arcpy.FeatureClassToFeatureClass_conversion(well_points, output, "points")
 
-		pts = os.path.join(output, "Points")
+		pts = os.path.join(output, "points")
 
 		# create buffer around points (1.5 miles) and save to results
 		#Buffer_analysis (in_features, out_feature_class, buffer_distance_or_field, {line_side}, {line_end_type}, {dissolve_option}, {dissolve_field})
@@ -93,7 +93,7 @@ class caml(object):
 		"""Define the tool (tool name is the name of the class)."""
 		self.label = "Tabulate CAML area"
 		self.description = "Tabulate area within buffers from CAML landuse"
-		self.canRunInBackground = True
+		self.canRunInBackground = False
 
 	def getParameterInfo(self):
 		"""Define parameter definitions"""
