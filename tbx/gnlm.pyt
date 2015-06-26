@@ -84,7 +84,7 @@ class WellBuffers(object):
 		# create buffer around points (1.5 miles) and save to results
 		#Buffer_analysis (in_features, out_feature_class, buffer_distance_or_field, {line_side}, {line_end_type}, {dissolve_option}, {dissolve_field})
 		arcpy.AddMessage("Creating buffers")
-		arcpy.Buffer_analysis(pts, os.path.join(output, "buffers"), "1.5 Miles")
+		arcpy.Buffer_analysis(pts, os.path.join(output, "buffers"), "1.5 Miles")  # buffer radius hard coded
 
 		return
 
@@ -150,7 +150,7 @@ class caml(object):
 
 		# settings from config file
 		in_zone_data = well_polygons
-		zone_field = "WELLID"
+		zone_field = "WELLID" # hard code field !
 		output = output
 
 		# overwrite output must be set to true in order to get all of the overlapping polygons processed.
@@ -159,7 +159,7 @@ class caml(object):
 		years = [1945, 1960, 1975, 1990, 2005]
 
 		for year in years:
-			print "Processing CAML: %s" %year
+			arcpy.AddMessage("Processing CAML: %s" %year)
 			caml_path = os.path.join(config.gnlmrfm, "data\caml", str(year), "landuse.tif")
 			table_name = "CAML_" + str(year)
 
