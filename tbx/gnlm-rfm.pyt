@@ -1,5 +1,5 @@
 # ---------------------------------------------------------------------------------------------------
-# Name: gnlm.pyt
+# Name: gnlm-rfm.pyt
 # Purpose: ArcGIS python toolbox containing geoprocessing tools for the gnlm rfm project
 # Author: Andy Bell (ambell@ucdavis.edu)
 # Created: 6/25/2015
@@ -8,6 +8,7 @@
 import arcpy
 import os
 import config
+import caml_area_reclass # funcs for caml_reclass tool
 
 class Toolbox(object):
 	def __init__(self):
@@ -16,7 +17,7 @@ class Toolbox(object):
 		self.alias = "Tools for groundwater wells"
 
 		# List of tool classes associated with this toolbox
-		self.tools = [WellBuffers, caml]
+		self.tools = [WellBuffers, caml, caml_reclass]
 
 
 class WellBuffers(object):
@@ -35,7 +36,7 @@ class WellBuffers(object):
 		well_pts.filter.list = ["Point"]
 
 		results = arcpy.Parameter(displayName="Output location", name="results", datatype="DEWorkspace",
-		                          parameterType="Required", direction="Input")
+								  parameterType="Required", direction="Input")
 
 		params = [well_pts, results]
 		return params
@@ -104,7 +105,7 @@ class caml(object):
 		well_buffers.filter.list = ["Polygon"]
 
 		results = arcpy.Parameter(displayName="Output location", name="results", datatype="DEWorkspace",
-		                          parameterType="Required", direction="Input")
+								  parameterType="Required", direction="Input")
 
 		params = [well_buffers,results]
 		return params
@@ -159,7 +160,8 @@ class caml(object):
 		#TODO make years selectable? ie toggle boxes?
 		years = [1945, 1960, 1975, 1990, 2005] 
 		
-		#  TODO: script fails when run on full dataset, runs successfully for a single year than errors out. Might have something to do with the number of polys (test with 1k successful)
+		#  TODO: script fails when run on full dataset, runs successfully for a single year than errors out.
+		#  Might have something to do with the number of polys (test with 1k successful)
 
 		for year in years:
 			arcpy.AddMessage("Processing CAML: %s" %year)
@@ -171,5 +173,147 @@ class caml(object):
 
 			# reference tools using tool alias _ tbx alias
 			arcpy.TabulateArea02_sas(in_zone_data, zone_field, caml_path, "Value", os.path.join(output, table_name), "50")
+
+		return
+
+
+class caml_reclass(object):
+	def __init__(self):
+		"""Define the tool (tool name is the name of the class)."""
+		self.label = "Reclass CAML area from CSV"
+		self.description = "Tabulate area from CAML landuse using csv file with reclass mappings"
+		self.canRunInBackground = False
+
+	def getParameterInfo(self):
+		"""Define parameter definitions"""
+
+		csv_file = arcpy.Parameter(displayName="Reclass Table", name="csv_file", datatype="DEFile",
+								  parameterType="Required", direction="Input")
+
+		landuse_area = arcpy.Parameter(displayName="CAML landuse area table", name="landuse_area", datatype="DETable",
+								  parameterType="Required", direction="Input")
+
+		results = arcpy.Parameter(displayName="Output location", name="results", datatype="DETable",
+								  parameterType="Required", direction="Output")
+
+		params = [landuse_area, csv_file, results]
+		return params
+
+	def updateMessages(self, parameters):
+		"""Modify the messages created by internal validation for each tool
+		parameter.  This method is called after internal validation."""
+
+		# add message if a feature class does not has a field in the reserved list of fieldnames
+		# check fieldnames for reserved names
+		def check_fieldnames(fc, matchlist):
+			"""Checks if a field(s) exist in feature class. Matches should be added as list"""
+			fieldList = arcpy.ListFields(fc)
+			check = False
+			for field in fieldList:
+				if field.name in matchlist:
+					check = True
+					return check
+			return check
+
+		if parameters[0].value:
+			fcs = parameters[0].valueAsText
+			if check_fieldnames(fcs, ["WELLID"]) is False:
+				parameters[0].setErrorMessage("Please add field called 'WELLID' with unique ID numbers")
+		return
+
+	def execute(self, parameters, messages):
+		"""The source code of the tool."""
+
+		# get parameters
+		# Parameters
+		caml_area_table = parameters[0].valueAsText
+		reclass_csv = parameters[1].valueAsText
+		out = parameters[2].valueAsText
+
+		arcpy.AddMessage(caml_area_table)
+		arcpy.AddMessage(reclass_csv)
+		arcpy.AddMessage(out)
+
+		base, file = os.path.split(out)
+		arcpy.AddMessage(base)
+		arcpy.AddMessage("Saving reclassified area as: %s" %file)
+
+		caml_area_reclass.main(caml_area_table, reclass_csv, base, file)
+
+		return
+
+class atmo_n(object):
+	def __init__(self):
+		"""Define the tool (tool name is the name of the class)."""
+		self.label = "Zonal Stats of Atmospheric Nitrogen Deposition"
+		self.description = "Calculate the average N deposition within the well buffers"
+
+
+	def getParameterInfo(self):
+		"""Define parameter definitions"""
+
+		well_buffers = arcpy.Parameter(displayName="Input Well buffers", name="well_buffers", datatype="GPFeatureLayer",
+								 parameterType="Required")
+
+		well_buffers.filter.list = ["Polygon"]
+
+		results = arcpy.Parameter(displayName="Output location", name="results", datatype="DEWorkspace",
+								  parameterType="Required", direction="Input")
+
+		params = [well_buffers, results]
+
+		return params
+
+	def updateMessages(self, parameters):
+		"""Modify the messages created by internal validation for each tool
+		parameter.  This method is called after internal validation."""
+
+		# add message if a feature class does not has a field in the reserved list of fieldnames
+		# check fieldnames for reserved names
+		def check_fieldnames(fc, matchlist):
+			"""Checks if a field(s) exist in feature class. Matches should be added as list"""
+			fieldList = arcpy.ListFields(fc)
+			check = False
+			for field in fieldList:
+				if field.name in matchlist:
+					check = True
+					return check
+			return check
+
+		if parameters[0].value:
+			fcs = parameters[0].valueAsText
+			if check_fieldnames(fcs, ["WELLID"]) is False:
+				parameters[0].setErrorMessage("Please add field called 'WELLID' with unique ID numbers")
+		return
+
+	def execute(self, parameters, messages):
+		"""The source code of the tool."""
+
+		# get parameters
+
+		in_zone_data = parameters[0].valueAsText
+		zone_field = config.well_id_field # avoids hard coding well id field
+		output = parameters[1].valueAsText
+		input_value_raster =
+		output_table =
+
+		# Import custom toolbox
+		arcpy.ImportToolbox(config.sup_tbx)
+
+		# Check out the ArcGIS Spatial Analyst extension license
+		arcpy.CheckOutExtension("Spatial")
+
+		# overwrite output must be set to true in order to get all of the overlapping polygons processed.
+		arcpy.env.overwriteOutput = "True"
+
+		arcpy.AddMessage("Processing CAML: %s" %year)
+
+		# snap raster to caml input
+		arcpy.env.snapRaster = input_value_raster
+
+		# reference tools using tool alias _ tbx alias
+		#arcpy.TabulateArea02_sas(in_zone_data, zone_field, caml_path, "Value", os.path.join(output, table_name), "50")
+
+
 
 		return

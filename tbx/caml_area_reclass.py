@@ -1,20 +1,21 @@
-__author__ = 'Andy'
+# ---------------------------------------------------------------------------------------------------
+# Name: caml_area_reclass.py
+# Purpose: functions to reclass landuse area using a csv file containing field mappings
+# Author: Andy Bell (ambell@ucdavis.edu)
+# Created: 7/1/2015
+# ---------------------------------------------------------------------------------------------------
 
 import arcpy
 import os
 import csv
 from collections import defaultdict
 
-caml_area_file = r"C:\Users\Andy\Documents\gnlm-rfm\results\results_sub.gdb\CAML_1960"
-output_path = r"C:\Users\Andy\Documents\gnlm-rfm\results\results_sub.gdb"
-reclass_file = r"C:\Users\Andy\Documents\gnlm-rfm\data\caml\RECLASS13_F2T.csv"
-
 
 # get groups from csv file in format of group1 = ['1', ['class1', 'class2,etc]
 def reclass_groups(reclass_csv_file):
 	"""reclass file should be csv file with headers and in the format of to, from"""
 	data = defaultdict(list)
-	with open(reclass_file, 'rb') as f:
+	with open(reclass_csv_file, 'rb') as f:
 		reader = csv.reader(f)
 		next(reader)
 		for row in reader:
@@ -116,5 +117,5 @@ def main(area_table, reclass_csv, output_path, output_name):
 	delete_matching_fields(outfile, "VALUE*")
 
 
-main(caml_area_file, reclass_file, output_path, "RECLASS_19601")
+
 
