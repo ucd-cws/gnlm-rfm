@@ -11,7 +11,16 @@ sup_tbx = os.path.join(gnlmrfm, "tbx", "SpatialAnalystSupplementalTools", "Spati
 well_id_field = "WELLID"
 
 # location of the septics raster
-septic_raster = os.path.join(gnlmrfm, "data\septics\Septics.tif")
+septic_raster = os.path.join(gnlmrfm, r"data\septics\Septics.tif")
 
 # location of the n dep raster
-ndep_raster = os.path.join(gnlmrfm, "data\ndep\ndeposition_bilinear.tif")
+ndep_raster = os.path.join(gnlmrfm, r"data\ndep\ndeposition_bilinear.tif")
+
+# location of the groundwater depth raster
+dwr_depth_raster = os.path.join(gnlmrfm, r"data\dwr_gwdepth\DWR_SPRING2012_DTW_m.tif")
+
+# location of bioclim raster
+bioclim_raster = os.path.join(gnlmrfm, r"data\bioclim\bioclim_1k.tif")
+
+# location of cvhm texture centroids
+cvhm_centroid_pts = os.path.join(gnlmrfm, r"data\cvhm\CVHMTexture_Centroids.shp")
