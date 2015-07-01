@@ -10,3 +10,8 @@ sup_tbx = os.path.join(gnlmrfm, "tbx", "SpatialAnalystSupplementalTools", "Spati
 # well ID field
 well_id_field = "WELLID"
 
+# location of the septics raster
+septic_raster = os.path.join(gnlmrfm, "data\septics\Septics.tif")
+
+# location of the n dep raster
+ndep_raster = os.path.join(gnlmrfm, "data\ndep\ndeposition_bilinear.tif")

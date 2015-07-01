@@ -10,6 +10,19 @@ import os
 import config
 import caml_area_reclass # funcs for caml_reclass tool
 
+# add message if a feature class does not has a field in the reserved list of fieldnames
+# check fieldnames for reserved names
+def check_fieldnames(fc, matchlist):
+	"""Checks if a field(s) exist in feature class. Matches should be added as list"""
+	fieldList = arcpy.ListFields(fc)
+	check = False
+	for field in fieldList:
+		if field.name in matchlist:
+			check = True
+			return check
+	return check
+
+
 class Toolbox(object):
 	def __init__(self):
 		"""Define the toolbox (the name of the toolbox is the name of the .pyt file)."""
@@ -17,7 +30,7 @@ class Toolbox(object):
 		self.alias = "Tools for groundwater wells"
 
 		# List of tool classes associated with this toolbox
-		self.tools = [WellBuffers, caml, caml_reclass]
+		self.tools = [WellBuffers, caml, caml_reclass, atmo_n, septics]
 
 
 class WellBuffers(object):
@@ -45,22 +58,10 @@ class WellBuffers(object):
 		"""Modify the messages created by internal validation for each tool
 		parameter.  This method is called after internal validation."""
 
-		# add message if a feature class does not has a field in the reserved list of fieldnames
-		# check fieldnames for reserved names
-		def check_fieldnames(fc, matchlist):
-			"""Checks if a field(s) exist in feature class. Matches should be added as list"""
-			fieldList = arcpy.ListFields(fc)
-			check = False
-			for field in fieldList:
-				if field.name in matchlist:
-					check = True
-					return check
-			return check
-
 		if parameters[0].value:
 			fcs = parameters[0].valueAsText
-			if check_fieldnames(fcs, ["WELLID"]) is False:
-				parameters[0].setErrorMessage("Please add field called 'WELLID' with unique ID numbers")
+			if check_fieldnames(fcs, [config.well_id_field]) is False:
+				parameters[0].setErrorMessage("Please add field called '%s' with unique ID numbers" % config.well_id_field)
 		return
 
 	def execute(self, parameters, messages):
@@ -107,52 +108,31 @@ class caml(object):
 		results = arcpy.Parameter(displayName="Output location", name="results", datatype="DEWorkspace",
 								  parameterType="Required", direction="Input")
 
-		params = [well_buffers,results]
+		params = [well_buffers, results]
 		return params
 
 	def updateMessages(self, parameters):
 		"""Modify the messages created by internal validation for each tool
 		parameter.  This method is called after internal validation."""
-
-		# add message if a feature class does not has a field in the reserved list of fieldnames
-		# check fieldnames for reserved names
-		def check_fieldnames(fc, matchlist):
-			"""Checks if a field(s) exist in feature class. Matches should be added as list"""
-			fieldList = arcpy.ListFields(fc)
-			check = False
-			for field in fieldList:
-				if field.name in matchlist:
-					check = True
-					return check
-			return check
-
 		if parameters[0].value:
 			fcs = parameters[0].valueAsText
-			if check_fieldnames(fcs, ["WELLID"]) is False:
-				parameters[0].setErrorMessage("Please add field called 'WELLID' with unique ID numbers")
+			if check_fieldnames(fcs, [config.well_id_field]) is False:
+				parameters[0].setErrorMessage("Please add field called '%s' with unique ID numbers" % config.well_id_field)
 		return
 
 	def execute(self, parameters, messages):
 		"""The source code of the tool."""
 
 		# get parameters
-		# Parameters
-		polygons = parameters[0]
-		out = parameters[1]
-
-		well_polygons = polygons.valueAsText
-		output = out.valueAsText
+		in_zone_data = parameters[0].valueAsText
+		output = parameters[1].valueAsText
+		zone_field = config.well_id_field
 
 		# Import custom toolbox
 		arcpy.ImportToolbox(config.sup_tbx)
 
 		# Check out the ArcGIS Spatial Analyst extension license
 		arcpy.CheckOutExtension("Spatial")
-
-		# settings from config file
-		in_zone_data = well_polygons
-		zone_field = "WELLID" # hard code field !
-		output = output
 
 		# overwrite output must be set to true in order to get all of the overlapping polygons processed.
 		arcpy.env.overwriteOutput = "True"
@@ -202,23 +182,10 @@ class caml_reclass(object):
 	def updateMessages(self, parameters):
 		"""Modify the messages created by internal validation for each tool
 		parameter.  This method is called after internal validation."""
-
-		# add message if a feature class does not has a field in the reserved list of fieldnames
-		# check fieldnames for reserved names
-		def check_fieldnames(fc, matchlist):
-			"""Checks if a field(s) exist in feature class. Matches should be added as list"""
-			fieldList = arcpy.ListFields(fc)
-			check = False
-			for field in fieldList:
-				if field.name in matchlist:
-					check = True
-					return check
-			return check
-
 		if parameters[0].value:
 			fcs = parameters[0].valueAsText
-			if check_fieldnames(fcs, ["WELLID"]) is False:
-				parameters[0].setErrorMessage("Please add field called 'WELLID' with unique ID numbers")
+			if check_fieldnames(fcs, [config.well_id_field]) is False:
+				parameters[0].setErrorMessage("Please add field called '%s' with unique ID numbers" %config.well_id_field)
 		return
 
 	def execute(self, parameters, messages):
@@ -242,25 +209,30 @@ class caml_reclass(object):
 
 		return
 
+
 class atmo_n(object):
 	def __init__(self):
 		"""Define the tool (tool name is the name of the class)."""
-		self.label = "Zonal Stats of Atmospheric Nitrogen Deposition"
+		self.label = "Atmospheric Nitrogen Deposition"
 		self.description = "Calculate the average N deposition within the well buffers"
-
 
 	def getParameterInfo(self):
 		"""Define parameter definitions"""
 
-		well_buffers = arcpy.Parameter(displayName="Input Well buffers", name="well_buffers", datatype="GPFeatureLayer",
+		well_buffers = arcpy.Parameter(displayName="Input Well Buffers", name="well_buffers", datatype="GPFeatureLayer",
 								 parameterType="Required")
 
 		well_buffers.filter.list = ["Polygon"]
 
-		results = arcpy.Parameter(displayName="Output location", name="results", datatype="DEWorkspace",
-								  parameterType="Required", direction="Input")
+		ndep = arcpy.Parameter(displayName="N Deposition raster", name="ndep", datatype="DERasterDataset",
+								 parameterType="Required")
 
-		params = [well_buffers, results]
+		ndep.value = config.ndep_raster
+
+		results = arcpy.Parameter(displayName="Output location", name="results", datatype="DETable",
+								  parameterType="Required", direction="Output")
+
+		params = [well_buffers, ndep, results]
 
 		return params
 
@@ -268,34 +240,19 @@ class atmo_n(object):
 		"""Modify the messages created by internal validation for each tool
 		parameter.  This method is called after internal validation."""
 
-		# add message if a feature class does not has a field in the reserved list of fieldnames
-		# check fieldnames for reserved names
-		def check_fieldnames(fc, matchlist):
-			"""Checks if a field(s) exist in feature class. Matches should be added as list"""
-			fieldList = arcpy.ListFields(fc)
-			check = False
-			for field in fieldList:
-				if field.name in matchlist:
-					check = True
-					return check
-			return check
-
 		if parameters[0].value:
 			fcs = parameters[0].valueAsText
-			if check_fieldnames(fcs, ["WELLID"]) is False:
-				parameters[0].setErrorMessage("Please add field called 'WELLID' with unique ID numbers")
+			if check_fieldnames(fcs, [config.well_id_field]) is False:
+				parameters[0].setErrorMessage("Please add field called '%s' with unique ID numbers" % config.well_id_field)
 		return
 
 	def execute(self, parameters, messages):
 		"""The source code of the tool."""
-
 		# get parameters
-
 		in_zone_data = parameters[0].valueAsText
 		zone_field = config.well_id_field # avoids hard coding well id field
-		output = parameters[1].valueAsText
-		input_value_raster =
-		output_table =
+		input_value_raster = parameters[1].valueAsText
+		output_table = parameters[2].valueAsText
 
 		# Import custom toolbox
 		arcpy.ImportToolbox(config.sup_tbx)
@@ -306,14 +263,75 @@ class atmo_n(object):
 		# overwrite output must be set to true in order to get all of the overlapping polygons processed.
 		arcpy.env.overwriteOutput = "True"
 
-		arcpy.AddMessage("Processing CAML: %s" %year)
+		arcpy.AddMessage("Processing")
 
-		# snap raster to caml input
+		# snap raster to input
 		arcpy.env.snapRaster = input_value_raster
 
 		# reference tools using tool alias _ tbx alias
-		#arcpy.TabulateArea02_sas(in_zone_data, zone_field, caml_path, "Value", os.path.join(output, table_name), "50")
+		arcpy.ZonalStatisticsAsTable02_sas(in_zone_data, zone_field, input_value_raster, output_table, statistics_type="ALL", ignore_nodata="DATA")
 
+		return
 
+class septics(object):
+	def __init__(self):
+		"""Define the tool (tool name is the name of the class)."""
+		self.label = "Num. People on Septics Systems"
+		self.description = "Calculate the number of people on septic systems within the well buffers"
+
+	def getParameterInfo(self):
+		"""Define parameter definitions"""
+
+		well_buffers = arcpy.Parameter(displayName="Input Well Buffers", name="well_buffers", datatype="GPFeatureLayer",
+								 parameterType="Required")
+
+		well_buffers.filter.list = ["Polygon"]
+
+		septics = arcpy.Parameter(displayName="Septics raster", name="septics", datatype="DERasterDataset",
+								 parameterType="Required")
+
+		septics.value = config.septic_raster
+
+		results = arcpy.Parameter(displayName="Output location", name="results", datatype="DETable",
+								  parameterType="Required", direction="Output")
+
+		params = [well_buffers, septics, results]
+
+		return params
+
+	def updateMessages(self, parameters):
+		"""Modify the messages created by internal validation for each tool
+		parameter.  This method is called after internal validation."""
+
+		if parameters[0].value:
+			fcs = parameters[0].valueAsText
+			if check_fieldnames(fcs, [config.well_id_field]) is False:
+				parameters[0].setErrorMessage("Please add field called '%s' with unique ID numbers" % config.well_id_field)
+		return
+
+	def execute(self, parameters, messages):
+		"""The source code of the tool."""
+		# get parameters
+		in_zone_data = parameters[0].valueAsText
+		zone_field = config.well_id_field # avoids hard coding well id field
+		input_value_raster = parameters[1].valueAsText
+		output_table = parameters[2].valueAsText
+
+		# Import custom toolbox
+		arcpy.ImportToolbox(config.sup_tbx)
+
+		# Check out the ArcGIS Spatial Analyst extension license
+		arcpy.CheckOutExtension("Spatial")
+
+		# overwrite output must be set to true in order to get all of the overlapping polygons processed.
+		arcpy.env.overwriteOutput = "True"
+
+		arcpy.AddMessage("Processing")
+
+		# snap raster to input
+		arcpy.env.snapRaster = input_value_raster
+
+		# reference tools using tool alias _ tbx alias
+		arcpy.ZonalStatisticsAsTable02_sas(in_zone_data, zone_field, input_value_raster, output_table, statistics_type="SUM", ignore_nodata="DATA")
 
 		return
