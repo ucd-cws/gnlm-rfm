@@ -5,20 +5,20 @@ import os
 import csv
 from collections import defaultdict
 
-caml_area_file = r"C:\Users\Andy\Documents\gnlm-rfm\results\results_sub.gdb\CAML_1945"
+caml_area_file = r"C:\Users\Andy\Documents\gnlm-rfm\results\results_sub.gdb\CAML_1960"
 output_path = r"C:\Users\Andy\Documents\gnlm-rfm\results\results_sub.gdb"
-reclass_file = r"C:\Users\Andy\Documents\gnlm-rfm\data\caml\RECLASS13.csv"
+reclass_file = r"C:\Users\Andy\Documents\gnlm-rfm\data\caml\RECLASS13_F2T.csv"
 
 
 # get groups from csv file in format of group1 = ['1', ['class1', 'class2,etc]
 def reclass_groups(reclass_csv_file):
-	"""reclass file should be csv file with headers and in the format of from, to"""
+	"""reclass file should be csv file with headers and in the format of to, from"""
 	data = defaultdict(list)
 	with open(reclass_file, 'rb') as f:
 		reader = csv.reader(f)
 		next(reader)
 		for row in reader:
-			data[row[0]].append(row[1])
+			data[row[1]].append(row[0])
 	groups = []
 	for key in data:
 		print key, 'reclass values', data[key]
@@ -114,3 +114,7 @@ def main(area_table, reclass_csv, output_path, output_name):
 
 	# remove old classes
 	delete_matching_fields(outfile, "VALUE*")
+
+
+main(caml_area_file, reclass_file, output_path, "RECLASS_19601")
+

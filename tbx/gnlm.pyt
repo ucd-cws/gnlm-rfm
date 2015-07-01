@@ -156,7 +156,10 @@ class caml(object):
 		# overwrite output must be set to true in order to get all of the overlapping polygons processed.
 		arcpy.env.overwriteOutput = "True"
 
-		years = [1945, 1960, 1975, 1990, 2005]
+		#TODO make years selectable? ie toggle boxes?
+		years = [1945, 1960, 1975, 1990, 2005] 
+		
+		#  TODO: script fails when run on full dataset, runs successfully for a single year than errors out. Might have something to do with the number of polys (test with 1k successful)
 
 		for year in years:
 			arcpy.AddMessage("Processing CAML: %s" %year)
