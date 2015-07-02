@@ -528,61 +528,59 @@ class cvhm(object):
 		centroids = parameters[1].valueAsText
 		output_table = parameters[2].valueAsText
 
-		base, file = os.path.split(input_pts)
+		# add all input fields to field mappings
+		field_map = arcpy.FieldMappings()
+		field_map.addTable(input_pts)
+		field_map.addTable(centroids)
+
+		# field to keep for centroids (top 8 layers only)
+		depths = ["PC_D25", "PC_D75", "PC_D125", "PC_D175", "PC_D225", "PC_D275", "PC_D325", "PC_D375"]
+
+		# set merge rule to mean for centroids
+		for depth in depths:
+			ind = field_map.findFieldMapIndex(depth)
+			arcpy.AddMessage(ind)
+			new_fm = field_map.getFieldMap(ind)
+			new_fm.mergeRule = 'Mean'
+			field_map.replaceFieldMap(ind, new_fm)
+
+		base, file = os.path.split(output_table)
 		temp = file + "_temp"
 		temp_file = os.path.join(base, temp)
 
-		# create copy of the input points since ExtractMultiValues overwrites inputs
-		arcpy.AddMessage("Creating temp file: %s" %temp)
-		arcpy.FeatureClassToFeatureClass_conversion(input_pts, base, temp)
+		arcpy.AddMessage("Processing")
+
+		# spatial join: join centroids info to input_pts (all centroids of grid that intersect (change if buffer is different size)
+		# TODO: make search radius function of buffer size (simple buffer + sqrt(0.5)
+		arcpy.SpatialJoin_analysis(target_features=input_pts, join_features=centroids, out_feature_class=temp_file,
+		                           join_operation="JOIN_ONE_TO_ONE", join_type="KEEP_COMMON", field_mapping=field_map,
+		                           match_option="WITHIN_A_DISTANCE", search_radius="2.2071 Miles", distance_field_name="#")
 
 		# drop fields
-
 		# use ListFields to get a list of field objects
 		fieldObjList = arcpy.ListFields(temp_file)
 
 		# create empty list to be populated with field names
 		fieldNameList = []
 
-		"""# for field in object list add the field to the name list. If it is required exclude it.
+		# for field in object list add the field to the name list. If it is required exclude it.
 		for field in fieldObjList:
 			if not field.required:
 				if field.name == config.well_id_field:
-					print 'ID field required'
+					print "ID field required"
+				elif field.name in depths:
+					print "Depth Field"
 				else:
 					fieldNameList.append(field.name)
 
 		# execute delete field to delete all fields in the field list
-		arcpy.DeleteField_management(temp_file, fieldNameList)"""
-
-		arcpy.AddMessage("Processing")
-
-		# field mappings for upper 400 feet (mean of centroids)
-		field_map = """WELLID "WELLID" true true false 4 Long 0 0 ,First,#,points,WELLID,-1,-1;
-		 PC_D25 "PC_D25" true true false 16 Double 6 15 ,Mean,#,CVHMTexture_Centroids,PC_D25,-1,-1;
-		 PC_D75 "PC_D75" true true false 16 Double 6 15 ,Mean,#,CVHMTexture_Centroids,PC_D75,-1,-1;
-		 PC_D125 "PC_D125" true true false 16 Double 6 15 ,Mean,#,CVHMTexture_Centroids,PC_D125,-1,-1;
-		 PC_D175 "PC_D175" true true false 16 Double 6 15 ,Mean,#,CVHMTexture_Centroids,PC_D175,-1,-1;
-		 PC_D225 "PC_D225" true true false 16 Double 6 15 ,Mean,#,CVHMTexture_Centroids,PC_D225,-1,-1;
-		 PC_D275 "PC_D275" true true false 16 Double 6 15 ,Mean,#,CVHMTexture_Centroids,PC_D275,-1,-1;
-		 PC_D325 "PC_D325" true true false 16 Double 6 15 ,Mean,#,CVHMTexture_Centroids,PC_D325,-1,-1;
-		 PC_D375 "PC_D375" true true false 16 Double 6 15 ,Mean,#,CVHMTexture_Centroids,PC_D375,-1,-1"""
-
-		# temporary
-		#temp2 = file + "_temp_sj"
-		#temp2_file = os.path.join(base, temp2)
-
-		# Spatial join
-		arcpy.SpatialJoin_analysis(temp_file, centroids, temp_file, "JOIN_ONE_TO_ONE", "KEEP_ALL", field_map,
-		                           "WITHIN_A_DISTANCE", "2 Miles")
+		arcpy.DeleteField_management(temp_file, fieldNameList)
 
 		# export to table
 		arcpy.CopyRows_management(temp_file, output_table)
 
 		# remove temporary point file
-		#arcpy.Delete_management(temp_file)
+		arcpy.Delete_management(temp_file)
 
 		return
-
-
 
