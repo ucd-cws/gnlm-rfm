@@ -110,7 +110,12 @@ class caml(object):
 		results = arcpy.Parameter(displayName="Output location", name="results", datatype="DEWorkspace",
 								  parameterType="Required", direction="Input")
 
-		params = [well_buffers, results]
+		years = arcpy.Parameter(displayName="Years", name="years", datatype="GPString", parameterType="Required",
+		                        multiValue="True", direction="Input")
+
+		years.filter.list = ["1945", "1960", "1975", "1990", "2005"]
+
+		params = [well_buffers, results, years]
 		return params
 
 	def updateMessages(self, parameters):
@@ -130,6 +135,10 @@ class caml(object):
 		output = parameters[1].valueAsText
 		zone_field = config.well_id_field
 
+		year_string = parameters[2].valueAsText
+
+		years = year_string.split(";")
+
 		# Import custom toolbox
 		arcpy.ImportToolbox(config.sup_tbx)
 
@@ -140,7 +149,7 @@ class caml(object):
 		arcpy.env.overwriteOutput = "True"
 
 		#TODO make years selectable? ie toggle boxes?
-		years = [1945, 1960, 1975, 1990, 2005] 
+		#years = [1945, 1960, 1975, 1990, 2005]
 		
 		#  TODO: script fails when run on full dataset, runs successfully for a single year than errors out.
 		#  Might have something to do with the number of polys (test with 1k successful)
