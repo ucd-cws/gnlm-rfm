@@ -1,0 +1,1 @@
+Major rivers in CA derived for NHDplus v2 data by joining NHDFlowlineVAA table to the NHDflowlines and selecting only the Modified Strahler Stream Order (StreamOrde) above 3.
