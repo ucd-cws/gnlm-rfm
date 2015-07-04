@@ -1,0 +1,202 @@
+CODE,Class,Group,To
+0,No data,Natural and Water,1
+1,Alpine-Dwarf Shrub,Natural and Water,1
+3,Annual Grassland,Natural and Water,1
+4,Alkali Desert Scrub,Natural and Water,1
+5,Aspen,Natural and Water,1
+6,Barren,Natural and Water,1
+7,Bitterbrush,Natural and Water,1
+8,Blue Oak-Foothill Pine,Natural and Water,1
+9,Blue Oak Woodland,Natural and Water,1
+10,Coastal Oak Woodland,Natural and Water,1
+11,Closed-Cone Pine-Cypress,Natural and Water,1
+12,Chamise-Redshank Chaparral,Natural and Water,1
+13,Coastal Scrub,Natural and Water,1
+14,Douglas-Fir,Natural and Water,1
+15,Desert Riparian,Natural and Water,1
+17,Desert Scrub,Natural and Water,1
+18,Desert Succulent Shrub,Natural and Water,1
+19,Desert Wash,Natural and Water,1
+20,Eastside Pine,Natural and Water,1
+21,Estuarine,Natural and Water,1
+22,Freshwater Emergent Wetland,Natural and Water,1
+24,Jeffrey Pine,Natural and Water,1
+25,Joshua Tree,Natural and Water,1
+26,Juniper,Natural and Water,1
+27,Klamath Mixed Conifer,Natural and Water,1
+28,Lacustrine,Natural and Water,1
+29,Lodgepole Pine,Natural and Water,1
+30,Low Sage,Natural and Water,1
+31,Marine,Natural and Water,1
+32,Mixed Chaparral,Natural and Water,1
+34,Montane Chaparral,Natural and Water,1
+35,Montane Hardwood-Conifer,Natural and Water,1
+36,Montane Hardwood,Natural and Water,1
+37,Montane Riparian,Natural and Water,1
+39,Perennial Grassland,Natural and Water,1
+40,Pinyon-Juniper,Natural and Water,1
+41,Palm Oasis,Natural and Water,1
+42,Ponderosa Pine,Natural and Water,1
+43,Riverine,Natural and Water,1
+44,Redwood,Natural and Water,1
+45,Red Fir,Natural and Water,1
+48,Subalpine Conifer,Natural and Water,1
+49,Saline Emergent Wetland,Natural and Water,1
+50,Sagebrush,Natural and Water,1
+51,Sierran Mixed Conifer,Natural and Water,1
+55,Valley Oak Woodland,Natural and Water,1
+56,Valley Foothill Riparian,Natural and Water,1
+57,Water,Natural and Water,1
+58,White Fir,Natural and Water,1
+59,Wet Meadow,Natural and Water,1
+62,Undetermined Shrub Type,Natural and Water,1
+63,Undetermined Conifer Type,Natural and Water,1
+77,Eucalyptus,Natural and Water,1
+310,Eucalyptus,Natural and Water,1
+902,Idle – New Lands,Natural and Water,1
+1410,Barren and Wasteland,Natural and Water,1
+1411,Dry stream channels,Natural and Water,1
+1412,Mine Tailings,Natural and Water,1
+1413,Barren Land,Natural and Water,1
+1414,Salt Flats,Natural and Water,1
+1415,Sand dunes,Natural and Water,1
+1420,Native Vegetation (unsegregated),Natural and Water,1
+1430,Riparian Vegetation,Natural and Water,1
+1431,Riparian Marsh,Natural and Water,1
+1432,Riparian Meadow,Natural and Water,1
+1433,Riparian Tree,Natural and Water,1
+1434,Riparian seasonal duck marsh,Natural and Water,1
+1435,Riparian permanent duck marsh,Natural and Water,1
+1440,Not surveyed,Natural and Water,1
+1450,Native Vegetation,Natural and Water,1
+1451,Grassland,Natural and Water,1
+1452,Light Brush,Natural and Water,1
+1453,Medium Brush,Natural and Water,1
+1454,Heavy Brush,Natural and Water,1
+1455,Brush and Timber,Natural and Water,1
+1456,Forest,Natural and Water,1
+1457,Oak grassland,Natural and Water,1
+1460,Water Surface,Natural and Water,1
+1461,River,Natural and Water,1
+1462,Water channel,Natural and Water,1
+1464,"Freshwater lake, reservoir",Natural and Water,1
+1465,Brackish water,Natural and Water,1
+300,Citrus and Subtropical (Also Miscellaneous subtropical and jojoba),Citrus and Subtropical,2
+301,Grapefruit,Citrus and Subtropical,2
+302,Lemons,Citrus and Subtropical,2
+303,Oranges,Citrus and Subtropical,2
+304,Dates,Citrus and Subtropical,2
+305,Avocados,Citrus and Subtropical,2
+306,Olives,Citrus and Subtropical,2
+308,Kiwis,Citrus and Subtropical,2
+400,Deciduous Fruits and Nuts (unlisted),Tree Fruit,3
+401,Mixed deciduous (Apples),Tree Fruit,3
+402,Apricots,Tree Fruit,3
+403,Cherries,Tree Fruit,3
+405,Peaches and Nectarines,Tree Fruit,3
+406,Pears,Tree Fruit,3
+407,Plums,Tree Fruit,3
+408,Prunes,Tree Fruit,3
+409,Figs,Tree Fruit,3
+412,Almonds,Nuts,4
+413,Walnuts,Nuts,4
+414,Pistachios,Nuts,4
+601,Cotton,Cotton,5
+600,"Field Crops (includes Flax, Hops, Castor Beans, Miscellaneous Field, and Millet)",Field Crops,6
+602,Safflower,Field Crops,6
+605,Sugar Beets,Field Crops,6
+610,Beans (dry),Field Crops,6
+612,Sunflowers,Field Crops,6
+901,Idle – Cropped Past 3 Years,Field Crops,6
+606,Corn (Field and Sweet),Forage,7
+607,Grain sorghum,Forage,7
+608,Sudan,Forage,7
+700,Grain and Hay (includes miscellaneous),Forage,7
+701,Barley,Forage,7
+702,Wheat,Forage,7
+703,Oats,Forage,7
+1800,Rice (includes rice & wild rice subclasses),Forage,7
+72,Non-Irrigated Pasture,Alfalfa and Pasture,8
+1600,Pasture,Alfalfa and Pasture,8
+1601,Alfalfa,Alfalfa and Pasture,8
+1602,Clover,Alfalfa and Pasture,8
+1603,Mixed pasture,Alfalfa and Pasture,8
+1604,Native Pasture,Alfalfa and Pasture,8
+1605,Induced high water table native pasture,Alfalfa and Pasture,8
+1606,Miscellaneous grasses,Alfalfa and Pasture,8
+1902,Livestock feedlot operation,CAFO,9
+1903,Dairy farm,CAFO,9
+1904,Poultry farm,CAFO,9
+1607,Turf farms,Vegetables and Berries,10
+2,Irrigated Agriculture,Vegetables and Berries,10
+2000,"Truck,Nursery, Berry Crops (includes cole mix, mixed, and misc. truck crops)",Vegetables and Berries,10
+2001,Artichokes,Vegetables and Berries,10
+2002,Asparagus,Vegetables and Berries,10
+2003,Beans (green),Vegetables and Berries,10
+2006,Carrots,Vegetables and Berries,10
+2007,Celery,Vegetables and Berries,10
+2008,Lettuce,Vegetables and Berries,10
+2009,"Melons, squash, cucumbers",Vegetables and Berries,10
+2010,Onions and garlic,Vegetables and Berries,10
+2011,Peas,Vegetables and Berries,10
+2012,Potatoes,Vegetables and Berries,10
+2013,Sweet Potatoes,Vegetables and Berries,10
+2014,Spinach,Vegetables and Berries,10
+2015,Tomatoes (processing),Vegetables and Berries,10
+2016,"Flowers, nursery, Christmas tree farms",Vegetables and Berries,10
+2019,Bush berries,Vegetables and Berries,10
+2020,Strawberries,Vegetables and Berries,10
+2021,Peppers,Vegetables and Berries,10
+2022,Broccoli,Vegetables and Berries,10
+2023,Cabbage,Vegetables and Berries,10
+2024,Cauliflower,Vegetables and Berries,10
+2025,Brussels Sprouts,Vegetables and Berries,10
+2027,Greenhouse,Vegetables and Berries,10
+1901,Farmstead (with residence),Peri-Urban,11
+1905,Farmstead (without residence),Peri-Urban,11
+2141,Single family > 1 acre,Peri-Urban,11
+2142,Single family 1-8 units/acre,Peri-Urban,11
+2200,"Vineyards (includes table grapes, wine grapes, and raisins)",Grapes,12
+53,Urban,Urban,13
+500,No Access,Urban,13
+2100,Urban,Urban,13
+2110,Commercial,Urban,13
+2111,Offices,Urban,13
+2112,Hotels,Urban,13
+2113,Motels,Urban,13
+2114,RV Parking,Urban,13
+2115,Institutions,Urban,13
+2116,Schools,Urban,13
+2117,Municipal buildings,Urban,13
+2118,Miscellaneous high water use,Urban,13
+2120,Industrial,Urban,13
+2121,Manufacturing,Urban,13
+2122,Extractive Industries,Urban,13
+2123,Storage and distribution,Urban,13
+2126,Saw Mills,Urban,13
+2127,Oil refineries,Urban,13
+2128,Paper mills,Urban,13
+2129,Meat Packing Plants,Urban,13
+2130,Urban landscape,Urban,13
+2131,Lawn - irrigated,Urban,13
+2132,Golf course,Urban,13
+2133,Ornamental landscape,Urban,13
+2134,Cemeteries - irrigated,Urban,13
+2135,Cemeteries - non-irrigated,Urban,13
+2140,Residential,Urban,13
+2143,Multiple family,Urban,13
+2144,Trailer Courts,Urban,13
+2150,Vacant,Urban,13
+2151,Unpaved,Urban,13
+2152,Vacant unlisted,Urban,13
+2153,Railroad right of way,Urban,13
+2154,Paved areas,Urban,13
+2156,Airport runways,Urban,13
+2161,(Unknown referent),Urban,13
+2600,Out of area,Urban,13
+212910,Steel mill,Urban,13
+212911,Fruit and Vegetable cannery,Urban,13
+212912,Miscellaneous high water use,Urban,13
+212913,Sewage treatment plant,Urban,13
+212914,Waste accumulation sites,Urban,13
+212915,Wind farms/solar farms,Urban,13

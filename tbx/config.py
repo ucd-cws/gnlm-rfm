@@ -24,3 +24,6 @@ bioclim_raster = os.path.join(gnlmrfm, r"data\bioclim\bioclim_1k.tif")
 
 # location of cvhm texture centroids
 cvhm_centroid_pts = os.path.join(gnlmrfm, r"data\cvhm\CVHMTexture_Centroids_CA_Teale.shp")
+
+# location of major rivers
+major_river = os.path.join(gnlmrfm, r"data\rivers\NHDFlowlines_major.shp")

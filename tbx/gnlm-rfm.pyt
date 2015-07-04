@@ -32,7 +32,7 @@ class Toolbox(object):
 		self.alias = "Tools for groundwater wells"
 
 		# List of tool classes associated with this toolbox
-		self.tools = [WellBuffers, caml, caml_reclass, atmo_n, septics, gw_depth, bioclim, cvhm]
+		self.tools = [WellBuffers, caml, caml_reclass, atmo_n, septics, gw_depth, bioclim, cvhm, join, dist2river]
 
 
 class WellBuffers(object):
@@ -134,6 +134,7 @@ class caml(object):
 		in_zone_data = parameters[0].valueAsText
 		output = parameters[1].valueAsText
 		zone_field = config.well_id_field
+		#zone_field = "OBJECTID"
 
 		year_string = parameters[2].valueAsText
 
@@ -146,11 +147,8 @@ class caml(object):
 		arcpy.CheckOutExtension("Spatial")
 
 		# overwrite output must be set to true in order to get all of the overlapping polygons processed.
-		arcpy.env.overwriteOutput = "True"
+		arcpy.env.overwriteOutput = True
 
-		#TODO make years selectable? ie toggle boxes?
-		#years = [1945, 1960, 1975, 1990, 2005]
-		
 		#  TODO: script fails when run on full dataset, runs successfully for a single year than errors out.
 		#  Might have something to do with the number of polys (test with 1k successful)
 
@@ -493,7 +491,6 @@ class bioclim(object):
 
 		return
 
-
 class cvhm(object):
 	def __init__(self):
 		"""Define the tool (tool name is the name of the class)."""
@@ -593,3 +590,237 @@ class cvhm(object):
 
 		return
 
+class join(object):
+	def __init__(self):
+		"""Define the tool (tool name is the name of the class)."""
+		self.label = "Join Tables"
+		self.description = "Join tables using %s" %config.well_id_field
+
+	def getParameterInfo(self):
+		"""Define parameter definitions"""
+
+		wells = arcpy.Parameter(displayName="Input Wells", name="wells", datatype="GPFeatureLayer",
+		                        parameterType="Required")
+
+		wells.filter.list = ["Point"]
+
+		results = arcpy.Parameter(displayName="Output location", name="results", datatype="DETable",
+								  parameterType="Required", direction="Output")
+
+		ndep = arcpy.Parameter(displayName="NDEP table", name="ndep", datatype="DETable",
+								  parameterType="Required", direction="Input")
+
+		bioclim = arcpy.Parameter(displayName="Bioclim table", name="bioclim", datatype="DETable",
+								  parameterType="Required", direction="Input")
+
+		gwdepth = arcpy.Parameter(displayName="GW Depth table", name="gwdepth", datatype="DETable",
+								  parameterType="Required", direction="Input")
+
+		septics = arcpy.Parameter(displayName="Septics table", name="septics", datatype="DETable",
+								  parameterType="Required", direction="Input")
+
+		cvhm = arcpy.Parameter(displayName="CVHM soil table", name="cvhm", datatype="DETable",
+								  parameterType="Required", direction="Input")
+
+		lu = arcpy.Parameter(displayName="Landuse reclass table", name="lu", datatype="DETable",
+								  parameterType="Required", direction="Input")
+
+		river = arcpy.Parameter(displayName="Distance to River table", name="river", datatype="DETable",
+								  parameterType="Required", direction="Input")
+
+		params = [wells, results, ndep, bioclim, gwdepth, septics, cvhm, lu, river]
+
+		return params
+
+	def updateMessages(self, parameters):
+		"""Modify the messages created by internal validation for each tool
+		parameter.  This method is called after internal validation."""
+
+		# TODO check all parameters have unique ID
+
+		if parameters[0].value:
+			fcs = parameters[0].valueAsText
+			if check_fieldnames(fcs, [config.well_id_field]) is False:
+				parameters[0].setErrorMessage("Please add field called '%s' with unique ID numbers" % config.well_id_field)
+		return
+
+	def execute(self, parameters, messages):
+		"""The source code of the tool."""
+		# get parameters
+		input_pts = parameters[0].valueAsText
+		output = parameters[1].valueAsText
+		atmo_table = parameters[2].valueAsText
+		bioclim_table = parameters[3].valueAsText
+		depth_gw = parameters[4].valueAsText
+		septics_table = parameters[5].valueAsText
+		cvhm_table = parameters[6].valueAsText
+		lu_table = parameters[7].valueAsText
+		river_table = parameters[8].valueAsText
+
+		#make temp feature layer
+		arcpy.MakeFeatureLayer_management(input_pts, "templyr")
+
+		# drop fields from templyr
+		# use ListFields to get a list of field objects
+		fieldObjList = arcpy.ListFields("templyr")
+		# create empty list to be populated with field names
+		fieldNameList = []
+		# for field in object list add the field to the name list. If it is required exclude it.
+		for field in fieldObjList:
+			if not field.required:
+				if field.name == config.well_id_field:
+					print "ID field required"
+				else:
+					fieldNameList.append(field.name)
+		# execute delete field to delete all fields in the field list
+		arcpy.DeleteField_management("templyr", fieldNameList)
+
+		# N dep
+		arcpy.AddMessage("Adding N dep Table")
+		arcpy.JoinField_management("templyr", config.well_id_field, atmo_table, config.well_id_field, ["MEAN"])
+		arcpy.AlterField_management("templyr", "MEAN", "NDEP_MEAN")
+
+		# depth to ground water
+		arcpy.AddMessage("Adding N Depth Table")
+		arcpy.JoinField_management("templyr", config.well_id_field, depth_gw, config.well_id_field, ["MEAN"])
+		arcpy.AlterField_management("templyr", "MEAN", "GWDEPTH_MEAN")
+
+		# number of people on septics
+		arcpy.AddMessage("Adding Septics Table")
+		arcpy.JoinField_management("templyr", config.well_id_field, septics_table, config.well_id_field, ["SUM"])
+		arcpy.AlterField_management("templyr", "SUM", "SEPTICS_NPEOPLE")
+
+		# river distance
+		arcpy.AddMessage("Adding distance to major river Table")
+		arcpy.JoinField_management("templyr", config.well_id_field, river_table, config.well_id_field, ["NEAR_DIST"])
+		arcpy.AlterField_management("templyr", "NEAR_DIST", "RIVER_DISTANCE")
+
+		# climate variables
+		arcpy.AddMessage("Adding Bioclim Table")
+		rastersux = "_bioclim_1k"
+		fields = ["b12", "b13", "b14", "b15", "b16", "b17", "b18", "b19"]
+		full_fields = []
+		for field in fields:
+			full = field + rastersux
+			full_fields.append(full)
+		arcpy.JoinField_management("templyr", config.well_id_field, bioclim_table, config.well_id_field, full_fields)
+
+		arcpy.AlterField_management("templyr", full_fields[0], "PRECIP_ANNUAL")
+		arcpy.AlterField_management("templyr", full_fields[1], "PRECIP_WETMONTH")
+		arcpy.AlterField_management("templyr", full_fields[2], "PRECIP_DRYMONTH")
+		arcpy.AlterField_management("templyr", full_fields[3], "PRECIP_SEASONALITY")
+		arcpy.AlterField_management("templyr", full_fields[4], "PRECIP_WETQUART")
+		arcpy.AlterField_management("templyr", full_fields[5], "PRECIP_DRYQUART")
+		arcpy.AlterField_management("templyr", full_fields[6], "PRECIP_WARMQUART")
+		arcpy.AlterField_management("templyr", full_fields[7], "PRECIP_COLDQUART")
+
+		# soil texture variables
+		arcpy.AddMessage("Adding Soil Texture Table")
+		soil_fields = ["PC_D25", "PC_D75", "PC_D125", "PC_D175", "PC_D225", "PC_D275", "PC_D325", "PC_D375"]
+		arcpy.JoinField_management("templyr", config.well_id_field, cvhm_table, config.well_id_field, soil_fields)
+
+		# landuse groups
+		arcpy.AddMessage("Adding Land Use Table")
+		lu_fields = ["GROUP_1", "GROUP_2", "GROUP_3", "GROUP_4", "GROUP_5", "GROUP_6", "GROUP_7", "GROUP_8",
+		             "GROUP_9", "GROUP_10", "GROUP_11", "GROUP_12", "GROUP_13", "GROUP_AREA"]
+		arcpy.JoinField_management("templyr", config.well_id_field, lu_table, config.well_id_field, lu_fields)
+
+		arcpy.AlterField_management("templyr", lu_fields[0], "LU1990_NATURALWATER")
+		arcpy.AlterField_management("templyr", lu_fields[1], "LU1990_CITRUSSUBTROP")
+		arcpy.AlterField_management("templyr", lu_fields[2], "LU1990_TREEFRUIT")
+		arcpy.AlterField_management("templyr", lu_fields[3], "LU1990_NUTS")
+		arcpy.AlterField_management("templyr", lu_fields[4], "LU1990_COTTON")
+		arcpy.AlterField_management("templyr", lu_fields[5], "LU1990_FIELDCROPS")
+		arcpy.AlterField_management("templyr", lu_fields[6], "LU1990_FORAGE")
+		arcpy.AlterField_management("templyr", lu_fields[7], "LU1990_ALFALFAPASTURE")
+		arcpy.AlterField_management("templyr", lu_fields[8], "LU1990_CAFO")
+		arcpy.AlterField_management("templyr", lu_fields[9], "LU1990_VEGBERRY")
+		arcpy.AlterField_management("templyr", lu_fields[10], "LU1990_PERIURBAN")
+		arcpy.AlterField_management("templyr", lu_fields[11], "LU1990_GRAPES")
+		arcpy.AlterField_management("templyr", lu_fields[12], "LU1990_URBAN")
+		arcpy.AlterField_management("templyr", lu_fields[13], "LU1990_TOTALAREA")
+
+		# export to table
+		arcpy.CopyRows_management("templyr", output)
+
+		# TODO export straight to text file
+
+		return
+
+
+class dist2river(object):
+	def __init__(self):
+		"""Define the tool (tool name is the name of the class)."""
+		self.label = "Distance to River"
+		self.description = "Calculate the distance to a major river (Mod. Strahler Stream > 3)"
+
+	def getParameterInfo(self):
+		"""Define parameter definitions"""
+
+		wells = arcpy.Parameter(displayName="Input Wells", name="wells", datatype="GPFeatureLayer",
+		                        parameterType="Required")
+
+		wells.filter.list = ["Point"]
+
+		rivers = arcpy.Parameter(displayName="Major River Flowlines", name="rivers", datatype="GPFeatureLayer",
+								 parameterType="Required")
+
+		rivers.value = config.major_river
+
+		results = arcpy.Parameter(displayName="Output location", name="results", datatype="DETable",
+								  parameterType="Required", direction="Output")
+
+		params = [wells, rivers, results]
+
+		return params
+
+	def updateMessages(self, parameters):
+		"""Modify the messages created by internal validation for each tool
+		parameter.  This method is called after internal validation."""
+
+		if parameters[0].value:
+			fcs = parameters[0].valueAsText
+			if check_fieldnames(fcs, [config.well_id_field]) is False:
+				parameters[0].setErrorMessage("Please add field called '%s' with unique ID numbers" % config.well_id_field)
+		return
+
+	def execute(self, parameters, messages):
+		"""The source code of the tool."""
+		# get parameters
+		input_pts = parameters[0].valueAsText
+		rivers = parameters[1].valueAsText
+		output_table = parameters[2].valueAsText
+
+		# create temp file
+		base, file = os.path.split(input_pts)
+		temp = file + "_temp"
+		temp_file = os.path.join(base, temp)
+
+		# create copy of the input points since ExtractMultiValues overwrites inputs
+		arcpy.AddMessage("Creating temp file: %s" %temp)
+		arcpy.FeatureClassToFeatureClass_conversion(input_pts, base, temp)
+
+		# use ListFields to get a list of field objects
+		fieldObjList = arcpy.ListFields(temp_file)
+		# create empty list to be populated with field names
+		fieldNameList = []
+		# for field in object list add the field to the name list. If it is required exclude it.
+		for field in fieldObjList:
+			if not field.required:
+				if field.name == config.well_id_field:
+					print "ID field required"
+				else:
+					fieldNameList.append(field.name)
+		# execute delete field to delete all fields in the field list
+		arcpy.DeleteField_management(temp_file, fieldNameList)
+
+		# find nearest feature
+		arcpy.Near_analysis(temp_file, rivers)
+
+		# export to table
+		arcpy.CopyRows_management(temp_file, output_table)
+
+		# remove temporary point file
+		arcpy.Delete_management(temp_file)
+
+		return
