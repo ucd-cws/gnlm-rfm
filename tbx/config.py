@@ -10,6 +10,9 @@ sup_tbx = os.path.join(gnlmrfm, "tbx", "SpatialAnalystSupplementalTools", "Spati
 # well ID field
 well_id_field = "WELLID"
 
+# buffer distance (radius to buffer around a point)
+buffer_dist = "1.5 Miles" # If units anything but miles, must change search radius in cvhm
+
 # location of the septics raster
 septic_raster = os.path.join(gnlmrfm, r"data\septics\Septics.tif")
 

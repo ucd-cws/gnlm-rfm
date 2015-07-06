@@ -8,8 +8,8 @@
 import arcpy
 import os
 import config
-import caml_area_reclass # funcs for caml_reclass tool
-
+import caml_area_reclass  # funcs for caml_reclass tool
+import math
 
 
 # add message if a feature class does not has a field in the reserved list of fieldnames
@@ -23,6 +23,28 @@ def check_fieldnames(fc, matchlist):
 			check = True
 			return check
 	return check
+
+# drop all non-required fields from table. Will modify existing table so make a copy first!!!
+def drop_unnecessary_fields(table):
+	# drop fields
+	# use ListFields to get a list of field objects
+	fieldObjList = arcpy.ListFields(table)
+
+	# create empty list to be populated with field names
+	fieldNameList = []
+
+	# for field in object list add the field to the name list. If it is required exclude it.
+	for field in fieldObjList:
+		if not field.required:
+			if field.name == config.well_id_field:
+				print "ID field required"
+			elif field.name in depths:
+				print "Depth Field"
+			else:
+				fieldNameList.append(field.name)
+
+	# execute delete field to delete all fields in the field list
+	arcpy.DeleteField_management(table, fieldNameList)
 
 
 class Toolbox(object):
@@ -38,7 +60,7 @@ class Toolbox(object):
 class WellBuffers(object):
 	def __init__(self):
 		"""Define the tool (tool name is the name of the class)."""
-		self.label = "Well Buffer"
+		self.label = "Buffer"
 		self.description = "Converts each point to a buffered polygon"
 		self.canRunInBackground = False
 
@@ -77,8 +99,8 @@ class WellBuffers(object):
 		well_points = points.valueAsText
 		output = out.valueAsText
 
-		arcpy.AddMessage("Points: %s" %well_points)
-		arcpy.AddMessage("Output: %s" %output)
+		arcpy.AddMessage("Points: %s" % well_points)
+		arcpy.AddMessage("Output: %s" % output)
 
 		# Creates copy of the original points
 		arcpy.FeatureClassToFeatureClass_conversion(well_points, output, "points")
@@ -86,9 +108,8 @@ class WellBuffers(object):
 		pts = os.path.join(output, "points")
 
 		# create buffer around points (1.5 miles) and save to results
-		#Buffer_analysis (in_features, out_feature_class, buffer_distance_or_field, {line_side}, {line_end_type}, {dissolve_option}, {dissolve_field})
 		arcpy.AddMessage("Creating buffers")
-		arcpy.Buffer_analysis(pts, os.path.join(output, "buffers"), "1.5 Miles")  # buffer radius hard coded
+		arcpy.Buffer_analysis(pts, os.path.join(output, "buffers"), config.buffer_dist)  # radius hard coded in config
 
 		return
 
@@ -134,7 +155,6 @@ class caml(object):
 		in_zone_data = parameters[0].valueAsText
 		output = parameters[1].valueAsText
 		zone_field = config.well_id_field
-		#zone_field = "OBJECTID"
 
 		year_string = parameters[2].valueAsText
 
@@ -148,9 +168,6 @@ class caml(object):
 
 		# overwrite output must be set to true in order to get all of the overlapping polygons processed.
 		arcpy.env.overwriteOutput = True
-
-		#  TODO: script fails when run on full dataset, runs successfully for a single year than errors out.
-		#  Might have something to do with the number of polys (test with 1k successful)
 
 		for year in years:
 			arcpy.AddMessage("Processing CAML: %s" %year)
@@ -276,7 +293,8 @@ class atmo_n(object):
 		arcpy.env.snapRaster = input_value_raster
 
 		# reference tools using tool alias _ tbx alias
-		arcpy.ZonalStatisticsAsTable02_sas(in_zone_data, zone_field, input_value_raster, output_table, statistics_type="ALL", ignore_nodata="DATA")
+		arcpy.ZonalStatisticsAsTable02_sas(in_zone_data, zone_field, input_value_raster, output_table,
+		                                   statistics_type="ALL", ignore_nodata="DATA")
 
 		return
 
@@ -339,7 +357,8 @@ class septics(object):
 		arcpy.env.snapRaster = input_value_raster
 
 		# reference tools using tool alias _ tbx alias
-		arcpy.ZonalStatisticsAsTable02_sas(in_zone_data, zone_field, input_value_raster, output_table, statistics_type="SUM", ignore_nodata="DATA")
+		arcpy.ZonalStatisticsAsTable02_sas(in_zone_data, zone_field, input_value_raster, output_table,
+		                                   statistics_type="SUM", ignore_nodata="DATA")
 
 		return
 
@@ -402,7 +421,8 @@ class gw_depth(object):
 		arcpy.env.snapRaster = input_value_raster
 
 		# reference tools using tool alias _ tbx alias
-		arcpy.ZonalStatisticsAsTable02_sas(in_zone_data, zone_field, input_value_raster, output_table, statistics_type="ALL", ignore_nodata="DATA")
+		arcpy.ZonalStatisticsAsTable02_sas(in_zone_data, zone_field, input_value_raster, output_table,
+		                                   statistics_type="ALL", ignore_nodata="DATA")
 
 		return
 
@@ -459,23 +479,7 @@ class bioclim(object):
 		arcpy.FeatureClassToFeatureClass_conversion(input_pts, base, temp)
 
 		# drop fields
-
-		# use ListFields to get a list of field objects
-		fieldObjList = arcpy.ListFields(temp_file)
-
-		# create empty list to be populated with field names
-		fieldNameList = []
-
-		# for field in object list add the field to the name list. If it is required exclude it.
-		for field in fieldObjList:
-			if not field.required:
-				if field.name == config.well_id_field:
-					print "ID field required"
-				else:
-					fieldNameList.append(field.name)
-
-		# execute delete field to delete all fields in the field list
-		arcpy.DeleteField_management(temp_file, fieldNameList)
+		drop_unnecessary_fields(temp_file)
 
 		# Check out the ArcGIS Spatial Analyst extension license
 		arcpy.CheckOutExtension("Spatial")
@@ -556,31 +560,19 @@ class cvhm(object):
 
 		arcpy.AddMessage("Processing")
 
+		# buffer and cell size must both be in the same units
+		dist, unit = config.buffer_distance.split()
+		search_radius = float(dist) + math.sqrt(0.5)  # cell size of cvhm raster 1 mile
+		search = str(search_radius) + " " + unit
+
 		# spatial join: join centroids info to input_pts (all centroids of grid that intersect (change if buffer is different size)
 		# TODO: make search radius function of buffer size (simple buffer + sqrt(0.5)
 		arcpy.SpatialJoin_analysis(target_features=input_pts, join_features=centroids, out_feature_class=temp_file,
 		                           join_operation="JOIN_ONE_TO_ONE", join_type="KEEP_COMMON", field_mapping=field_map,
-		                           match_option="WITHIN_A_DISTANCE", search_radius="2.2071 Miles", distance_field_name="#")
+		                           match_option="WITHIN_A_DISTANCE", search_radius=search, distance_field_name="#")
 
 		# drop fields
-		# use ListFields to get a list of field objects
-		fieldObjList = arcpy.ListFields(temp_file)
-
-		# create empty list to be populated with field names
-		fieldNameList = []
-
-		# for field in object list add the field to the name list. If it is required exclude it.
-		for field in fieldObjList:
-			if not field.required:
-				if field.name == config.well_id_field:
-					print "ID field required"
-				elif field.name in depths:
-					print "Depth Field"
-				else:
-					fieldNameList.append(field.name)
-
-		# execute delete field to delete all fields in the field list
-		arcpy.DeleteField_management(temp_file, fieldNameList)
+		drop_unnecessary_fields(temp_file)
 
 		# export to table
 		arcpy.CopyRows_management(temp_file, output_table)
@@ -661,19 +653,7 @@ class join(object):
 		arcpy.MakeFeatureLayer_management(input_pts, "templyr")
 
 		# drop fields from templyr
-		# use ListFields to get a list of field objects
-		fieldObjList = arcpy.ListFields("templyr")
-		# create empty list to be populated with field names
-		fieldNameList = []
-		# for field in object list add the field to the name list. If it is required exclude it.
-		for field in fieldObjList:
-			if not field.required:
-				if field.name == config.well_id_field:
-					print "ID field required"
-				else:
-					fieldNameList.append(field.name)
-		# execute delete field to delete all fields in the field list
-		arcpy.DeleteField_management("templyr", fieldNameList)
+		drop_unnecessary_fields("templyr")
 
 		# N dep
 		arcpy.AddMessage("Adding N dep Table")
@@ -800,19 +780,8 @@ class dist2river(object):
 		arcpy.AddMessage("Creating temp file: %s" %temp)
 		arcpy.FeatureClassToFeatureClass_conversion(input_pts, base, temp)
 
-		# use ListFields to get a list of field objects
-		fieldObjList = arcpy.ListFields(temp_file)
-		# create empty list to be populated with field names
-		fieldNameList = []
-		# for field in object list add the field to the name list. If it is required exclude it.
-		for field in fieldObjList:
-			if not field.required:
-				if field.name == config.well_id_field:
-					print "ID field required"
-				else:
-					fieldNameList.append(field.name)
-		# execute delete field to delete all fields in the field list
-		arcpy.DeleteField_management(temp_file, fieldNameList)
+		# drop fields not needed
+		drop_unnecessary_fields(temp_file)
 
 		# find nearest feature
 		arcpy.Near_analysis(temp_file, rivers)
