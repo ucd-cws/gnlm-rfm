@@ -38,8 +38,6 @@ def drop_unnecessary_fields(table):
 		if not field.required:
 			if field.name == config.well_id_field:
 				print "ID field required"
-			elif field.name in depths:
-				print "Depth Field"
 			else:
 				fieldNameList.append(field.name)
 
@@ -366,7 +364,7 @@ class septics(object):
 class gw_depth(object):
 	def __init__(self):
 		"""Define the tool (tool name is the name of the class)."""
-		self.label = "Groundwater depth"
+		self.label = "Groundwater Depth"
 		self.description = "Calculate the average groundwater depth within the well buffers"
 
 	def getParameterInfo(self):
@@ -601,7 +599,7 @@ class cvhm(object):
 class dist2river(object):
 	def __init__(self):
 		"""Define the tool (tool name is the name of the class)."""
-		self.label = "Distance to River"
+		self.label = "Distance to Major River"
 		self.description = "Calculate the distance to a major river (Mod. Strahler Stream > 3)"
 
 	def getParameterInfo(self):
