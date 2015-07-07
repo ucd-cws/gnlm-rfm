@@ -58,3 +58,7 @@ target/
 
 #pycharm
 .idea/
+.Rproj.user
+
+*.vat.cpg
+*.vat.dbf
