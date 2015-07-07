@@ -1,0 +1,8 @@
+from_value,to_value,ouput_value,class
+2,2.9,2,lagoons
+3,3.9,3,corrals
+1000,2999,1000,dairy
+3000,3499,3000,FP
+3500,3999,3500,WWTP
+4000,4999,4000,Biosolids
+6000,6999,6000,Perc Basins
