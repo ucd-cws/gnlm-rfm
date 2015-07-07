@@ -44,7 +44,8 @@ def drop_unnecessary_fields(table):
 				fieldNameList.append(field.name)
 
 	# execute delete field to delete all fields in the field list
-	arcpy.DeleteField_management(table, fieldNameList)
+	if len(fieldNameList) > 0:
+		arcpy.DeleteField_management(table, fieldNameList)
 
 
 class Toolbox(object):
@@ -470,13 +471,9 @@ class bioclim(object):
 		input_value_raster = parameters[1].valueAsText
 		output_table = parameters[2].valueAsText
 
-		base, file = os.path.split(input_pts)
-		temp = file + "_temp"
-		temp_file = os.path.join(base, temp)
-
-		# create copy of the input points since ExtractMultiValues overwrites inputs
-		arcpy.AddMessage("Creating temp file: %s" %temp)
-		arcpy.FeatureClassToFeatureClass_conversion(input_pts, base, temp)
+		# make temporary feature layer
+		temp_file = "TEMP"
+		arcpy.MakeFeatureLayer_management(input_pts, temp_file)
 
 		# drop fields
 		drop_unnecessary_fields(temp_file)
@@ -558,6 +555,7 @@ class cvhm(object):
 		temp = file + "_temp"
 		temp_file = os.path.join(base, temp)
 
+
 		arcpy.AddMessage("Processing")
 
 		# buffer and cell size must both be in the same units
@@ -566,7 +564,6 @@ class cvhm(object):
 		search = str(search_radius) + " " + unit
 
 		# spatial join: join centroids info to input_pts (all centroids of grid that intersect (change if buffer is different size)
-		# TODO: make search radius function of buffer size (simple buffer + sqrt(0.5)
 		arcpy.SpatialJoin_analysis(target_features=input_pts, join_features=centroids, out_feature_class=temp_file,
 		                           join_operation="JOIN_ONE_TO_ONE", join_type="KEEP_COMMON", field_mapping=field_map,
 		                           match_option="WITHIN_A_DISTANCE", search_radius=search, distance_field_name="#")
@@ -625,14 +622,9 @@ class dist2river(object):
 		rivers = parameters[1].valueAsText
 		output_table = parameters[2].valueAsText
 
-		# create temp file
-		base, file = os.path.split(input_pts)
-		temp = file + "_temp"
-		temp_file = os.path.join(base, temp)
-
-		# create copy of the input points since ExtractMultiValues overwrites inputs
-		arcpy.AddMessage("Creating temp file: %s" %temp)
-		arcpy.FeatureClassToFeatureClass_conversion(input_pts, base, temp)
+		# make temporary feature layer
+		temp_file = "TEMP"
+		arcpy.MakeFeatureLayer_management(input_pts, temp_file)
 
 		# drop fields not needed
 		drop_unnecessary_fields(temp_file)
