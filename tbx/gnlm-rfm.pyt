@@ -430,7 +430,7 @@ class gw_depth(object):
 class bioclim(object):
 	def __init__(self):
 		"""Define the tool (tool name is the name of the class)."""
-		self.label = "Add bioclim data for well"
+		self.label = "Add Bioclim Data"
 		self.description = "Calculate the precipitation data for the wells"
 
 	def getParameterInfo(self):
@@ -495,7 +495,7 @@ class bioclim(object):
 class cvhm(object):
 	def __init__(self):
 		"""Define the tool (tool name is the name of the class)."""
-		self.label = "Add CVHM data for well"
+		self.label = "Add CVHM Data"
 		self.description = "Calculate the soil texture data for the well buffer"
 
 	def getParameterInfo(self):
@@ -555,11 +555,10 @@ class cvhm(object):
 		temp = file + "_temp"
 		temp_file = os.path.join(base, temp)
 
-
 		arcpy.AddMessage("Processing")
 
 		# buffer and cell size must both be in the same units
-		dist, unit = config.buffer_distance.split()
+		dist, unit = config.buffer_dist.split()
 		search_radius = float(dist) + math.sqrt(0.5)  # cell size of cvhm raster 1 mile
 		search = str(search_radius) + " " + unit
 
@@ -568,8 +567,28 @@ class cvhm(object):
 		                           join_operation="JOIN_ONE_TO_ONE", join_type="KEEP_COMMON", field_mapping=field_map,
 		                           match_option="WITHIN_A_DISTANCE", search_radius=search, distance_field_name="#")
 
+
+		# drop all non-required fields from table. Will modify existing table so make a copy first!!!
 		# drop fields
-		drop_unnecessary_fields(temp_file)
+		# use ListFields to get a list of field objects
+		fieldObjList = arcpy.ListFields(temp_file)
+
+		# create empty list to be populated with field names
+		fieldNameList = []
+
+		# for field in object list add the field to the name list. If it is required exclude it.
+		for field in fieldObjList:
+			if not field.required:
+				if field.name == config.well_id_field:
+					print "ID field required"
+				elif field.name in depths:
+					print "Depth Field"
+				else:
+					fieldNameList.append(field.name)
+
+		# execute delete field to delete all fields in the field list
+		if len(fieldNameList) > 0:
+			arcpy.DeleteField_management(temp_file, fieldNameList)
 
 		# export to table
 		arcpy.CopyRows_management(temp_file, output_table)
