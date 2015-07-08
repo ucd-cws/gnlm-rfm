@@ -20,6 +20,15 @@ gwdepth <- read.dbf(file.path(folder, "GWDEPTH.dbf"))
 ndep <- read.dbf(file.path(folder, "NDEP.dbf"))
 septics <- read.dbf(file.path(folder, "SEPTICS.dbf"))
 caml_groups_2005 <-read.dbf(file.path(folder, "CAML_2005_RECLASS.dbf"))
+gnlm_area <- read.dbf(file.path(folder, "GNLM_2005_AREA.dbf"))
+
+# kg N per year from gnlm
+gnlm_biosolids <- read.dbf(file.path(folder, "BIOSOLIDS_2005_KgNyr.dbf"))
+gnlm_dairies <- read.dbf(file.path(folder, "DAIRIES_2005_KgNyr.dbf"))
+gnlm_fp <- read.dbf(file.path(folder, "FP_2005_KgNyr.dbf"))
+gnlm_perc_fp <- read.dbf(file.path(folder, "PERC_FP_2005_KgNyr.dbf"))
+gnlm_perc_wwtp <- read.dbf(file.path(folder, "PERC_WWTP_2005_KgNyr.dbf"))
+gnlm_wwtp <- read.dbf(file.path(folder, "WWTP_2005_KgNyr.dbf"))
 
 ###############
 
@@ -37,6 +46,7 @@ join_n_drop <- function(target, table_to_join, by_field, list_of_fields_2_join, 
   joined <- combined_sub
 }
 
+# function to turn CAML area totals into % of total area
 caml_area_2_percent <- function(caml_reclass_table){
   caml_reclass_table$GROUP_1 <- caml_reclass_table$GROUP_1/caml_reclass_table$GROUP_AREA
   caml_reclass_table$GROUP_2 <- caml_reclass_table$GROUP_2/caml_reclass_table$GROUP_AREA
@@ -87,3 +97,14 @@ caml_groups_2005_percent <- caml_area_2_percent(caml_groups_2005)   # caml resul
 
 jointarget <- join_n_drop(jointarget,caml_groups_2005_percent, joinfield, c("GROUP_1", "GROUP_2", "GROUP_3", "GROUP_4", "GROUP_5", "GROUP_6", "GROUP_7", "GROUP_8", "GROUP_9", "GROUP_10", "GROUP_11", "GROUP_12", "GROUP_13", "GROUP_AREA"), c("CAML2005_natural", "CAML2005_citrus", "CAML2005_tree", "CAML2005_nuts", "CAML2005_cotton", "CAML2005_field", "CAML2005_forage", "CAML2005_alfalfa", "CAML2005_cafo", "CAML2005_veg", "CAML2005_periurban", "CAML2005_grapes", "CAML2005_urban", "CAML2005_AREA"))
 
+# GNLM area in buffer
+jointarget <- join_n_drop(jointarget, gnlm_area, joinfield, c("VALUE_2", "VALUE_3", "VALUE_1000", "VALUE_3000", "VALUE_3500", "VALUE_4000","VALUE_6000"), 
+                          c("GNLM_lagoons_area", "GNLM_corrals_area", "GNLM_dairies_area", "GNLM_fp_area", "GNLM_wwtp_area", "GNLM_biosolid_area", "GNLM_percbasin_area"))
+
+# GNLM variables
+jointarget <- join_n_drop(jointarget, gnlm_fp, joinfield, c("SUM"), c("GNLM_FP_KgNyr"))
+jointarget <- join_n_drop(jointarget, gnlm_wwtp, joinfield, c("SUM"), c("GNLM_WWTP_KgNyr"))
+jointarget <- join_n_drop(jointarget, gnlm_biosolids, joinfield, c("SUM"), c("GNLM_BIOSOLIDS_KgNyr"))
+jointarget <- join_n_drop(jointarget, gnlm_dairies, joinfield, c("SUM"), c("GNLM_DAIRIES_KgNyr"))
+jointarget <- join_n_drop(jointarget, gnlm_perc_fp, joinfield, c("SUM"), c("GNLM_PERC_FP_KgNyr"))
+jointarget <- join_n_drop(jointarget, gnlm_perc_wwtp, joinfield, c("SUM"), c("GNLM_PERC_WWTP_KgNyr"))
