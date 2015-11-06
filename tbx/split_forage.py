@@ -15,7 +15,7 @@ wdir = config.gnlmrfm
 caml1990 = os.path.join(wdir, r"data\caml\1990", "landuse.tif")
 
 # location to save file
-output_name = os.path.join(wdir, "data\caml\1990", "landuse_manure.tif")
+output_name = os.path.join(wdir, r"data\caml\1990", "landuse_manure.tif")
 
 # what is the search distance
 search_dist = 1609.34  # in meters = 1 mile
