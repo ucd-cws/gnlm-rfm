@@ -106,11 +106,16 @@ class WellBuffers(object):
 		# Creates copy of the original points
 		arcpy.FeatureClassToFeatureClass_conversion(well_points, output, "points")
 
-		pts = os.path.join(output, "points")
+		try:
+			pts = os.path.join(output, "points")
 
-		# create buffer around points (1.5 miles) and save to results
-		arcpy.AddMessage("Creating buffers")
-		arcpy.Buffer_analysis(pts, os.path.join(output, "buffers"), config.buffer_dist)  # radius hard coded in config
+			# create buffer around points (1.5 miles) and save to results
+			arcpy.AddMessage("Creating buffers")
+			arcpy.Buffer_analysis(pts, os.path.join(output, "buffers"), config.buffer_dist)  # radius hard coded in config
+		except:
+			pts = os.path.join(output, "points.shp")
+			# create buffer around points (1.5 miles) and save to results
+			arcpy.Buffer_analysis(pts, os.path.join(output, "buffers"), config.buffer_dist)  # radius hard coded in config
 
 		return
 
