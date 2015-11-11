@@ -72,7 +72,7 @@ class WellBuffers(object):
 		well_pts.filter.list = ["Point"]
 
 		results = arcpy.Parameter(displayName="Output location", name="results", datatype="DEWorkspace",
-								  parameterType="Required", direction="Input") # TODO change the datatype to geodatabase
+								  parameterType="Required", direction="Input")  # TODO force datatype to geodatabase?
 
 		params = [well_pts, results]
 		return params
@@ -81,7 +81,19 @@ class WellBuffers(object):
 		"""Modify the messages created by internal validation for each tool
 		parameter.  This method is called after internal validation."""
 
-		# TODO update message to check if the geodatabase is actually empty
+		# update message to check if the geodatabase is actually empty
+		if parameters[1].value:
+			output_loc = parameters[1].valueAsText
+			msg_exists = "Set output as an empty geodatabase. Either points or buffers already exist"
+
+			if arcpy.Exists(os.path.join(output_loc, "points.shp")):
+				parameters[1].setErrormessage(msg_exists)
+			elif arcpy.Exists(os.path.join(output_loc, "buffers.shp")):
+				parameters[1].setErrormessage(msg_exists)
+			elif arcpy.Exists(os.path.join(output_loc, "points")):
+				parameters[1].setErrormessage(msg_exists)
+			elif arcpy.Exists(os.path.join(output_loc, "buffers")):
+				parameters[1].setErrormessage(msg_exists)
 
 		if parameters[0].value:
 			fcs = parameters[0].valueAsText
