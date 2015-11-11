@@ -72,7 +72,7 @@ class WellBuffers(object):
 		well_pts.filter.list = ["Point"]
 
 		results = arcpy.Parameter(displayName="Output location", name="results", datatype="DEWorkspace",
-								  parameterType="Required", direction="Input")
+								  parameterType="Required", direction="Input") # TODO change the datatype to geodatabase
 
 		params = [well_pts, results]
 		return params
@@ -80,6 +80,8 @@ class WellBuffers(object):
 	def updateMessages(self, parameters):
 		"""Modify the messages created by internal validation for each tool
 		parameter.  This method is called after internal validation."""
+
+		# TODO update message to check if the geodatabase is actually empty
 
 		if parameters[0].value:
 			fcs = parameters[0].valueAsText
