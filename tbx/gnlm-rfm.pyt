@@ -53,7 +53,8 @@ class Toolbox(object):
 		self.alias = "Tools for groundwater wells"
 
 		# List of tool classes associated with this toolbox
-		self.tools = [WellBuffers, caml, caml_reclass, atmo_n, septics, gw_depth, bioclim, cvhm, dist2river, gnlmarea, dirappnload]
+		self.tools = [WellBuffers, caml, caml_reclass, atmo_n, septics, gw_depth, bioclim,
+		              cvhm, dist2river, gnlmarea, dirappnload, surgo]
 
 
 class WellBuffers(object):
