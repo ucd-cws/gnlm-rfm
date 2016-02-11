@@ -8,7 +8,7 @@ gnlmrfm = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sup_tbx = os.path.join(gnlmrfm, "tbx", "SpatialAnalystSupplementalTools", "Spatial Analyst Supplemental Tools.pyt")
 
 # well ID field
-well_id_field = "WELLID"
+well_id_field = "GRIDID"
 
 # buffer distance (radius to buffer around a point)
 buffer_dist = "1.5 Miles" # If units anything but miles, must change search radius in cvhm

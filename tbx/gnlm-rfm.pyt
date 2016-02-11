@@ -832,7 +832,7 @@ class surgo(object):
 		drain.value = config.drain_raster
 
 		results = arcpy.Parameter(displayName="Output location", name="results", datatype="DEWorkspace",
-								  parameterType="Required", direction="Output")
+								  parameterType="Required")
 
 		params = [well_buffers, som, ksat, hydgrp, drain, results]
 
