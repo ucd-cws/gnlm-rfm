@@ -35,7 +35,7 @@ GNLM-RFM.pyt
  - Num. People on Septics Systems: Tabulates an approximation of the number of people on septic systems within the buffer using zonal stats "sum".
  - GNLM AREA: Tabulates the amount of area within each of the buffers for each of the groups in the GNLM Direct App Rasters. 
  - N load GNLM variables: Sums the Kg N per year for the GNLM variable within the buffer. Raster values should be kg of N per year.
- 
+ - SURGO: Calculates the average organic soil matter and ksat within the well buffers plus the proportion of area in the hydrologic group and drainage class" 
 
 ## Predictor Grid 
 

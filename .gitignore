@@ -62,3 +62,8 @@ target/
 
 *.vat.cpg
 *.vat.dbf
+*.sr.lock
+*.tif.aux.xml
+*.tif.ovr
+*.pyt.xml
+*.rd.lock

@@ -30,3 +30,9 @@ cvhm_centroid_pts = os.path.join(gnlmrfm, r"data\cvhm\CVHMTexture_Centroids_CA_T
 
 # location of major rivers
 major_river = os.path.join(gnlmrfm, r"data\rivers\NHDFlowlines_major.shp")
+
+# SURGO soil rasters
+som_raster = os.path.join(gnlmrfm, r"data\surgo\om_kg_sq_m.tif")
+drain_raster = os.path.join(gnlmrfm, r"data\surgo\drainage_class.tif")
+ksat_raster = os.path.join(gnlmrfm, r"data\surgo\mean_ksat.tif")
+hydgrp_raster = os.path.join(gnlmrfm, r"data\surgo\hydgrp.tif")
