@@ -67,3 +67,6 @@ target/
 *.tif.ovr
 *.pyt.xml
 *.rd.lock
+
+archive/
+

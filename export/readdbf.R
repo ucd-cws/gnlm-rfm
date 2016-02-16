@@ -22,3 +22,6 @@ wells <- combined[vars]
 names(wells)[names(wells)=='NEAR_DIST'] <- 'RIVER_DIST_m'
 
 # repeat for all dbfs using for loop?
+
+
+som <- read.dbf("wells/SURGO_SOM.dbf")
