@@ -7,8 +7,8 @@
 
 import arcpy
 import os
-import config
-import caml_area_reclass  # funcs for caml_reclass tool
+import scripts.config_paths
+import scripts.caml_area_reclass  # funcs for caml_reclass tool
 import math
 
 
@@ -53,84 +53,9 @@ class Toolbox(object):
 		self.alias = "Tools for groundwater wells"
 
 		# List of tool classes associated with this toolbox
-		self.tools = [WellBuffers, caml, caml_reclass, atmo_n, septics, gw_depth, bioclim,
-		              cvhm, dist2river, gnlmarea, dirappnload, surgo]
+		self.tools = [caml, caml_reclass, atmo_n, gw_depth, bioclim,
+		              cvhm, dist2river, gnlmarea, dirappnload]
 
-
-class WellBuffers(object):
-	def __init__(self):
-		"""Define the tool (tool name is the name of the class)."""
-		self.label = "Buffer"
-		self.description = "Converts each point to a buffered polygon"
-		self.canRunInBackground = False
-
-	def getParameterInfo(self):
-		"""Define parameter definitions"""
-
-		well_pts = arcpy.Parameter(displayName="Input Well Features", name="well_pts", datatype="GPFeatureLayer",
-								 parameterType="Required")
-
-		well_pts.filter.list = ["Point"]
-
-		results = arcpy.Parameter(displayName="Output location", name="results", datatype="DEWorkspace",
-								  parameterType="Required", direction="Input")  # TODO force datatype to geodatabase?
-
-		params = [well_pts, results]
-		return params
-
-	def updateMessages(self, parameters):
-		"""Modify the messages created by internal validation for each tool
-		parameter.  This method is called after internal validation."""
-
-		# update message to check if the geodatabase is actually empty
-		if parameters[1].value:
-			output_loc = parameters[1].valueAsText
-			msg_exists = "Set output as an empty geodatabase. Either points or buffers already exist"
-
-			if arcpy.Exists(os.path.join(output_loc, "points.shp")):
-				parameters[1].setErrormessage(msg_exists)
-			elif arcpy.Exists(os.path.join(output_loc, "buffers.shp")):
-				parameters[1].setErrormessage(msg_exists)
-			elif arcpy.Exists(os.path.join(output_loc, "points")):
-				parameters[1].setErrormessage(msg_exists)
-			elif arcpy.Exists(os.path.join(output_loc, "buffers")):
-				parameters[1].setErrormessage(msg_exists)
-
-		if parameters[0].value:
-			fcs = parameters[0].valueAsText
-			if check_fieldnames(fcs, [config.well_id_field]) is False:
-				parameters[0].setErrorMessage("Please add field called '%s' with unique ID numbers" % config.well_id_field)
-		return
-
-	def execute(self, parameters, messages):
-		"""The source code of the tool."""
-
-		# get parameters
-		# Parameters
-		points = parameters[0]
-		out = parameters[1]
-
-		well_points = points.valueAsText
-		output = out.valueAsText
-
-		arcpy.AddMessage("Points: %s" % well_points)
-		arcpy.AddMessage("Output: %s" % output)
-
-		# Creates copy of the original points
-		arcpy.FeatureClassToFeatureClass_conversion(well_points, output, "points")
-
-		try:
-			pts = os.path.join(output, "points")
-
-			# create buffer around points (1.5 miles) and save to results
-			arcpy.AddMessage("Creating buffers")
-			arcpy.Buffer_analysis(pts, os.path.join(output, "buffers"), config.buffer_dist)  # radius hard coded in config
-		except:
-			pts = os.path.join(output, "points.shp")
-			# create buffer around points (1.5 miles) and save to results
-			arcpy.Buffer_analysis(pts, os.path.join(output, "buffers"), config.buffer_dist)  # radius hard coded in config
-
-		return
 
 class caml(object):
 	def __init__(self):
@@ -317,69 +242,6 @@ class atmo_n(object):
 
 		return
 
-class septics(object):
-	def __init__(self):
-		"""Define the tool (tool name is the name of the class)."""
-		self.label = "Num. People on Septics Systems"
-		self.description = "Calculate the number of people on septic systems within the well buffers"
-
-	def getParameterInfo(self):
-		"""Define parameter definitions"""
-
-		well_buffers = arcpy.Parameter(displayName="Input Well Buffers", name="well_buffers", datatype="GPFeatureLayer",
-								 parameterType="Required")
-
-		well_buffers.filter.list = ["Polygon"]
-
-		septics = arcpy.Parameter(displayName="Septics raster", name="septics", datatype="DERasterDataset",
-								 parameterType="Required")
-
-		septics.value = config.septic_raster
-
-		results = arcpy.Parameter(displayName="Output location", name="results", datatype="DETable",
-								  parameterType="Required", direction="Output")
-
-		params = [well_buffers, septics, results]
-
-		return params
-
-	def updateMessages(self, parameters):
-		"""Modify the messages created by internal validation for each tool
-		parameter.  This method is called after internal validation."""
-
-		if parameters[0].value:
-			fcs = parameters[0].valueAsText
-			if check_fieldnames(fcs, [config.well_id_field]) is False:
-				parameters[0].setErrorMessage("Please add field called '%s' with unique ID numbers" % config.well_id_field)
-		return
-
-	def execute(self, parameters, messages):
-		"""The source code of the tool."""
-		# get parameters
-		in_zone_data = parameters[0].valueAsText
-		zone_field = config.well_id_field # avoids hard coding well id field
-		input_value_raster = parameters[1].valueAsText
-		output_table = parameters[2].valueAsText
-
-		# Import custom toolbox
-		arcpy.ImportToolbox(config.sup_tbx)
-
-		# Check out the ArcGIS Spatial Analyst extension license
-		arcpy.CheckOutExtension("Spatial")
-
-		# overwrite output must be set to true in order to get all of the overlapping polygons processed.
-		arcpy.env.overwriteOutput = "True"
-
-		arcpy.AddMessage("Processing")
-
-		# snap raster to input
-		arcpy.env.snapRaster = input_value_raster
-
-		# reference tools using tool alias _ tbx alias
-		arcpy.ZonalStatisticsAsTable02_sas(in_zone_data, zone_field, input_value_raster, output_table,
-		                                   statistics_type="SUM", ignore_nodata="DATA")
-
-		return
 
 class gw_depth(object):
 	def __init__(self):
@@ -795,104 +657,3 @@ class dirappnload(object):
 		arcpy.ZonalStatisticsAsTable02_sas(in_zone_data, zone_field, input_value_raster, output_table,
 		                                   statistics_type="SUM", ignore_nodata="DATA")
 
-
-class surgo(object):
-	def __init__(self):
-		"""Define the tool (tool name is the name of the class)."""
-		self.label = "SURGO soils"
-		self.description = "Calculate the average organic soil matter and ksat within the well buffers plus the" \
-		                   " proportion of area in the hydrologic group and drainage class"
-
-	def getParameterInfo(self):
-		"""Define parameter definitions"""
-
-		well_buffers = arcpy.Parameter(displayName="Input Well Buffers", name="well_buffers", datatype="GPFeatureLayer",
-								 parameterType="Required")
-
-		well_buffers.filter.list = ["Polygon"]
-
-		som = arcpy.Parameter(displayName="Organic Soil Matter raster", name="som", datatype="DERasterDataset",
-								 parameterType="Required")
-
-		som.value = config.som_raster
-
-		ksat = arcpy.Parameter(displayName="MEAN KSAT raster", name="ksat", datatype="DERasterDataset",
-								 parameterType="Required")
-
-		ksat.value = config.ksat_raster
-
-		hydgrp = arcpy.Parameter(displayName="Hydrologic Group raster", name="hydgrp", datatype="DERasterDataset",
-								 parameterType="Required")
-
-		hydgrp.value = config.hydgrp_raster
-
-		drain = arcpy.Parameter(displayName="Drainage Class raster", name="drain", datatype="DERasterDataset",
-								 parameterType="Required")
-
-		drain.value = config.drain_raster
-
-		results = arcpy.Parameter(displayName="Output location", name="results", datatype="DEWorkspace",
-								  parameterType="Required")
-
-		params = [well_buffers, som, ksat, hydgrp, drain, results]
-
-		return params
-
-	def updateMessages(self, parameters):
-		"""Modify the messages created by internal validation for each tool
-		parameter.  This method is called after internal validation."""
-
-		if parameters[0].value:
-			fcs = parameters[0].valueAsText
-			if check_fieldnames(fcs, [config.well_id_field]) is False:
-				parameters[0].setErrorMessage("Please add field called '%s' with unique ID numbers" % config.well_id_field)
-		return
-
-	def execute(self, parameters, messages):
-		"""The source code of the tool."""
-		# get parameters
-		in_zone_data = parameters[0].valueAsText
-		zone_field = config.well_id_field # avoids hard coding well id field
-		input_som = parameters[1].valueAsText
-		input_ksat = parameters[2].valueAsText
-		input_hydgrp = parameters[3].valueAsText
-		input_drain = parameters[4].valueAsText
-		output_location = parameters[5].valueAsText
-
-		# Import custom toolbox
-		arcpy.ImportToolbox(config.sup_tbx)
-
-		# Check out the ArcGIS Spatial Analyst extension license
-		arcpy.CheckOutExtension("Spatial")
-
-		# overwrite output must be set to true in order to get all of the overlapping polygons processed.
-		arcpy.env.overwriteOutput = "True"
-
-		arcpy.AddMessage("Processing")
-
-		# snap raster to input
-		arcpy.env.snapRaster = input_som
-
-		# reference tools using tool alias _ tbx alias
-		# SOM
-		arcpy.AddMessage("Working on SURGO Soil organic matter....")
-
-		arcpy.ZonalStatisticsAsTable02_sas(in_zone_data, zone_field, input_som, os.path.join(output_location, "SURGO_SOM"),
-		                                   statistics_type="ALL", ignore_nodata="DATA")
-		# KSAT
-		arcpy.AddMessage("Working on SURGO KSAT....")
-
-		arcpy.ZonalStatisticsAsTable02_sas(in_zone_data, zone_field, input_ksat, os.path.join(output_location, "SURGO_KSAT"),
-		                                   statistics_type="ALL", ignore_nodata="DATA")
-
-		# hydro groups
-		arcpy.AddMessage("Working on SURGO hydro groups....")
-		arcpy.TabulateArea02_sas(in_zone_data, zone_field, input_hydgrp, "Value",
-		                         os.path.join(output_location, "SURGO_HYDROGROUP"), "1000")
-
-		# drain groups
-		arcpy.AddMessage("Working on SURGO Draingage....")
-		arcpy.TabulateArea02_sas(in_zone_data, zone_field, input_drain, "Value",
-		                         os.path.join(output_location, "SURGO_DRAIN"), "1000")
-
-		return
