@@ -7,8 +7,10 @@
 
 import arcpy
 import os
-import scripts.config_paths
-import scripts.caml_area_reclass  # funcs for caml_reclass tool
+import sys
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+import config_paths as config
+import caml_area_reclass as caml_area_reclass # funcs for caml_reclass tool
 import math
 
 
@@ -50,7 +52,7 @@ class Toolbox(object):
 	def __init__(self):
 		"""Define the toolbox (the name of the toolbox is the name of the .pyt file)."""
 		self.label = "Tools for GNLM RFM"
-		self.alias = "Tools for groundwater wells"
+		self.alias = "gnlm"
 
 		# List of tool classes associated with this toolbox
 		self.tools = [caml, caml_reclass, atmo_n, gw_depth, bioclim,
@@ -67,7 +69,7 @@ class caml(object):
 	def getParameterInfo(self):
 		"""Define parameter definitions"""
 
-		well_buffers = arcpy.Parameter(displayName="Input Well buffers", name="well_buffers", datatype="GPFeatureLayer",
+		well_buffers = arcpy.Parameter(displayName="Input Area for Each Well", name="well_buffers", datatype="GPFeatureLayer",
 								 parameterType="Required")
 
 		well_buffers.filter.list = ["Polygon"]
@@ -115,14 +117,14 @@ class caml(object):
 
 		for year in years:
 			arcpy.AddMessage("Processing CAML: %s" %year)
-			caml_path = os.path.join(config.gnlmrfm, "data\caml", str(year), "landuse.tif")
+			caml_path = os.path.join(config.wd, "data\caml", str(year), "landuse.tif")
 			table_name = "CAML_" + str(year)
 
 			# snap raster to caml input
-			arcpy.env.snapRaster = caml_path
+			arcpy.env.snapRaster = config.snap_template
 
 			# reference tools using tool alias _ tbx alias
-			arcpy.TabulateArea02_sas(in_zone_data, zone_field, caml_path, "Value", os.path.join(output, table_name), "50")
+			arcpy.TabulateArea02_sas(in_zone_data, zone_field, caml_path, "Value", os.path.join(output, table_name), "10")
 
 		return
 
