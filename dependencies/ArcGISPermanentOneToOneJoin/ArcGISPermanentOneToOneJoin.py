@@ -50,7 +50,6 @@ def copy_field_attributes_to_new_field(source_table, current_field, target_table
 	join_table_fields = arcpy.ListFields(source_table)
 	for field in join_table_fields:
 		if field.name == current_field:  # we found our attribute
-			print(field.name)
 			base_field = field
 			break
 	else:
@@ -58,8 +57,6 @@ def copy_field_attributes_to_new_field(source_table, current_field, target_table
 
 	type_mapping = {"Integer": "LONG", "OID": "LONG", "SmallInteger": "SHORT",
 					"String": "TEXT"}  # ArcGIS annoyingly doesn't report out the same data types as you need to provide, so this allows us to map one to the other
-
-	print("old type: %s" %base_field.type)
 
 	if base_field.type in type_mapping.keys():  # if it's a type that needs conversion
 		new_type = type_mapping[base_field.type]  # look it up and save it
@@ -70,8 +67,6 @@ def copy_field_attributes_to_new_field(source_table, current_field, target_table
 		new_name = target_field
 	else:
 		new_name = base_field.name
-
-	print("new type: %s" %new_type)
 
 	# copy the field over other than those first two attributes
 	arcpy.AddField_management(target_table, new_name, new_type, field.precision, field.scale, field.length,
