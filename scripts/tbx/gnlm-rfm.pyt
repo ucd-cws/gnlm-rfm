@@ -236,7 +236,7 @@ class atmo_n(object):
 		arcpy.AddMessage("Processing")
 
 		# snap raster to input
-		arcpy.env.snapRaster = input_value_raster
+		arcpy.env.snapRaster = config.snap_template
 
 		# reference tools using tool alias _ tbx alias
 		arcpy.ZonalStatisticsAsTable02_sas(in_zone_data, zone_field, input_value_raster, output_table,
@@ -301,7 +301,7 @@ class gw_depth(object):
 		arcpy.AddMessage("Processing")
 
 		# snap raster to input
-		arcpy.env.snapRaster = input_value_raster
+		arcpy.env.snapRaster = config.snap_template
 
 		# reference tools using tool alias _ tbx alias
 		arcpy.ZonalStatisticsAsTable02_sas(in_zone_data, zone_field, input_value_raster, output_table,
@@ -594,7 +594,7 @@ class gnlmarea(object):
 		arcpy.env.overwriteOutput = True
 
 		# reference tools using tool alias _ tbx alias
-		arcpy.TabulateArea02_sas(in_zone_data, zone_field, gnlm_reclass, "Value", output, "50")
+		arcpy.TabulateArea02_sas(in_zone_data, zone_field, gnlm_reclass, "Value", output, "10")
 
 		return
 
@@ -653,7 +653,7 @@ class dirappnload(object):
 		arcpy.AddMessage("Processing")
 
 		# snap raster to input
-		arcpy.env.snapRaster = input_value_raster
+		arcpy.env.snapRaster = config.snap_template
 
 		# reference tools using tool alias _ tbx alias
 		arcpy.ZonalStatisticsAsTable02_sas(in_zone_data, zone_field, input_value_raster, output_table,
