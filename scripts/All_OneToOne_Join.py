@@ -8,8 +8,8 @@ import arcpy
 sys.path.insert(0, os.path.join(config_paths.wd, r'dependencies\ArcGISPermanentOneToOneJoin'))
 import ArcGISPermanentOneToOneJoin as o2o
 
-source = os.path.join(config_paths.wd, r"results\WELLS_UCD_vars_20160520.mdb")
-target_table = os.path.join(source, "UCD_Load")
+source = os.path.join(config_paths.wd, r"results\WELLS_UCD_vars_20160602.mdb")
+target_table = os.path.join(source, "UCDLoad")
 
 # Set the current workspace
 arcpy.env.workspace = source
@@ -103,3 +103,4 @@ for table in dist:
 		new_name = table + "_" + "NEAR"
 		print(new_name)
 		o2o.permanent_join(target_table, "WELLID", os.path.join(source, table), "WELLID", field.name, new_name)
+
